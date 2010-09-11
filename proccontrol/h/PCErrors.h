@@ -62,7 +62,7 @@ namespace ProcControlAPI {
 typedef unsigned err_t;
   
 const err_t err_badparam       = 0x10000;
-const err_t err_procread       = 0x10001;
+const err_t err_memaccess      = 0x10001;
 const err_t err_internal       = 0x10002;
 const err_t err_prem           = 0x10003;
 const err_t err_noproc         = 0x10004;

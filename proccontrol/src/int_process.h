@@ -186,7 +186,7 @@ class int_process
    installed_breakpoint *getBreakpoint(Dyninst::Address addr);
 
    virtual unsigned plat_breakpointSize() = 0;
-   virtual void plat_breakpointBytes(char *buffer) = 0;
+   virtual void plat_breakpointBytes(unsigned char *buffer) = 0;
 
    virtual bool plat_createDeallocationSnippet(Dyninst::Address addr, unsigned long size, void* &buffer, 
                                                unsigned long &buffer_size, unsigned long &start_offset) = 0;
@@ -307,6 +307,8 @@ class int_registerPool
    reg_map_t regs;
    bool full;
    int_thread *thread;
+   void *reg_buffer;
+   unsigned reg_buffer_size;
 
    typedef reg_map_t::iterator iterator;
    typedef reg_map_t::const_iterator const_iterator;

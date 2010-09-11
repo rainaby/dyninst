@@ -37,11 +37,15 @@
 #if !defined(os_windows)
 #define cap_pthreads
 #include <pthread.h>
+#else
+#include <Windows.h>
 #endif
 
 class DThread {
 #if defined(cap_pthreads)
    pthread_t thrd;
+#elif defined(os_windows)
+   HANDLE thrd;
 #endif
    bool live;   
  public:
@@ -59,6 +63,8 @@ class Mutex {
    friend class CondVar;
 #if defined(cap_pthreads)
    pthread_mutex_t mutex;
+#elif defined(os_windows)
+   CRITICAL_SECTION mutex;
 #endif
  public:
    Mutex(bool recursive=false);
@@ -71,6 +77,8 @@ class Mutex {
 class CondVar {
 #if defined(cap_pthreads)
    pthread_cond_t cond;
+#elif defined(os_windows)
+   CONDITION_VARIABLE cond;
 #endif
    Mutex *mutex;
    bool created_mutex;

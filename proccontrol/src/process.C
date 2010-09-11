@@ -3059,7 +3059,7 @@ bool installed_breakpoint::isInstalled() const
 bool installed_breakpoint::writeBreakpoint(int_process *proc, result_response::ptr write_response)
 {
    assert(buffer_size != 0);
-   char bp_insn[BP_BUFFER_SIZE];
+   unsigned char bp_insn[BP_BUFFER_SIZE];
    proc->plat_breakpointBytes(bp_insn);
    return proc->writeMem(bp_insn, addr, buffer_size, write_response);
 }
@@ -3610,7 +3610,9 @@ RegisterPool::const_iterator RegisterPool::const_iterator::operator++(int)
 
 int_registerPool::int_registerPool() :
    full(false),
-   thread(NULL)
+   thread(NULL),
+   reg_buffer(NULL),
+   reg_buffer_size(0)
 {
 }
 
@@ -3619,10 +3621,21 @@ int_registerPool::int_registerPool(const int_registerPool &c) :
    full(c.full),
    thread(c.thread)
 {
+	if (c.reg_buffer) {
+		reg_buffer = malloc(c.reg_buffer_size);
+		memcpy(reg_buffer, c.reg_buffer,  c.reg_buffer_size);
+		reg_buffer_size = c.reg_buffer_size;
+	}
+	else {
+		reg_buffer = NULL;
+		reg_buffer_size = 0;
+	}
 }
 
 int_registerPool::~int_registerPool()
 {
+	if (reg_buffer)
+		free(reg_buffer);
 }
 
 Library::Library()

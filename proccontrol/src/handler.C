@@ -1,3 +1,34 @@
+/*
+ * Copyright (c) 1996-2009 Barton P. Miller
+ * 
+ * We provide the Paradyn Parallel Performance Tools (below
+ * described as "Paradyn") on an AS IS basis, and do not warrant its
+ * validity or performance.  We reserve the right to update, modify,
+ * or discontinue this software at any time.  We shall have no
+ * obligation to supply such updates or modifications or any other
+ * form of support to you.
+ * 
+ * By your use of Paradyn, you understand and agree that we (or any
+ * other person or entity with proprietary rights in Paradyn) are
+ * under no obligation to provide either maintenance services,
+ * update services, notices of latent defects, or correction of
+ * defects for Paradyn.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 #include "proccontrol/h/Handler.h"
 #include "proccontrol/h/PCErrors.h"
 #include "proccontrol/h/Process.h"
@@ -592,7 +623,7 @@ Handler::handler_ret_t HandleThreadCreate::handleEvent(Event::ptr ev)
    EventNewThread *threadev = static_cast<EventNewThread *>(ev.get());
 
    pthrd_printf("Handle thread create for %d/%d with new thread %d\n",
-                proc->getPid(), thrd ? thrd->getLWP() : -1, threadev->getLWP());
+                proc->getPid(), thrd ? thrd->getLWP() : NULL_LWP, threadev->getLWP());
 
    ProcPool()->condvar()->lock();
    
@@ -1266,7 +1297,7 @@ bool HandleCallbacks::deliverCallback(Event::ptr ev, const set<Process::cb_func_
 bool HandleCallbacks::registerCallback_int(EventType ev, Process::cb_func_t func)
 {
    pthrd_printf("Registering event %s with callback function %p\n", ev.name().c_str(), func);
-   std::set<EventType>::iterator i = alleventtypes.find(ev);
+   std::set<EventType, eventtype_cmp>::iterator i = alleventtypes.find(ev);
    if (i == alleventtypes.end()) {
       pthrd_printf("Event %s does not have any handler\n", ev.name().c_str());
       return false;
