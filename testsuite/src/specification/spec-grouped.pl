@@ -2431,6 +2431,7 @@ pcPlatforms(P) :- platform('x86_64', 'linux', _, P).
 pcPlatforms(P) :- platform('i386', 'linux', _, P).
 pcPlatforms(P) :- platform('i386', 'freebsd', _,P).
 pcPlatforms(P) :- platform('x86_64', 'freebsd', _,P).
+pcPlatforms(P) :- platform('i386', 'windows', _, P).
 
 % ELF platforms
 rewriteablePlatforms(P) :- platform(_, 'linux', _, P).
@@ -2442,13 +2443,14 @@ pcMutateeLibs(Libs) :-
    (
        OS = 'solaris' -> Libs = ['dl', 'pthread', 'rt'];
        OS = 'freebsd' -> Libs = ['pthread'];
+       OS = 'windows' -> Libs = [];
        Libs = ['dl', 'pthread']
    ).
 
 compiler_for_mutatee(Mutatee, Compiler) :-
-           test(T, _, Mutatee),
+    test(T, _, Mutatee),
     tests_module(T, 'proccontrol'),
-    member(Compiler, ['gcc', 'g++']).
+    member(Compiler, ['gcc', 'g++', 'VC', 'VC++']).
            
 test('pc_launch', 'pc_launch', 'pc_launch').
 test_description('pc_launch', 'Launch a process').
