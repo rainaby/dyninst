@@ -619,6 +619,7 @@ Parser::parse_frame(ParseFrame & frame, bool recursive) {
                 work->mark_call();
             } else {
                 ct = _parse_data->findFunc(frame.codereg,work->target());
+                ce = work->edge();
             }
 
             if(recursive && ct &&
@@ -626,18 +627,49 @@ Parser::parse_frame(ParseFrame & frame, bool recursive) {
                 frame_status(ct->region(),ct->addr())==ParseFrame::BAD_LOOKUP))
             {
                 // suspend this frame and parse the next
-                parsing_printf("    [suspend frame %lx]\n",
-                   func->addr()); 
+                parsing_printf("    [suspend frame %lx]\n", func->addr()); 
                 frame.call_target = ct;
-                frame.caller_block = cur;
                 frame.set_status(ParseFrame::CALL_BLOCKED);
                 // need to re-visit this edge
                 frame.pushWork(work);
                 return;
             }
             else if(ct && work->tailcall()) {
+               if (ct->_rs == UNSET) {
+                  // Ah helll....
+                frame.call_target = ct;
+                frame.set_status(ParseFrame::CALL_BLOCKED);
+                // need to re-visit this edge
+                frame.pushWork(work);
+                return;
+               }                  
+
                 if(func->_rs != RETURN && ct->_rs > NORETURN)
                     func->_rs = ct->_rs;
+            }
+
+            // check for catch blocks after non-returning calls
+            if(ct && ct->_rs == NORETURN) {
+                Address catchStart;
+                Block * caller = ce->src();
+                if(frame.codereg->findCatchBlock(caller->end(),catchStart)) {
+                    parsing_printf("[%s] found post-return catch block %lx\n",
+                        FILE__,catchStart);
+
+                    // make an edge
+                    Edge * catch_edge = link_tempsink(caller,CATCH);
+                
+                    // push on worklist
+                    ParseWorkElem * catch_work = 
+                       work->bundle()->add(
+                        new ParseWorkElem(
+                            work->bundle(),
+                            catch_edge,
+                            catchStart,
+                            true, false)
+                       );
+                    frame.pushWork(catch_work);
+                }
             }
     
             continue;
@@ -712,7 +744,9 @@ Parser::parse_frame(ParseFrame & frame, bool recursive) {
         } else {
             parsing_printf("[%s] deferring parse of shared block %lx\n",
                 FILE__,cur->start());
-            func->_rs = UNKNOWN;
+            if (func->_rs < UNKNOWN) {
+                func->_rs = UNKNOWN;
+            }
             continue;
         }
 
@@ -901,14 +935,15 @@ Parser::parse_frame(ParseFrame & frame, bool recursive) {
 
     /** parsing complete **/
     if(HASHDEF(plt_entries,frame.func->addr())) {
-        if(obj().cs()->nonReturning(frame.func->addr()))
-            frame.func->_rs = NORETURN;
-        else
-            frame.func->_rs = UNKNOWN; 
+       if(obj().cs()->nonReturning(frame.func->addr())) {
+          frame.func->_rs = NORETURN;
+       }
+       else
+          frame.func->_rs = UNKNOWN; 
     }
-    else if(frame.func->_rs == UNSET)
+    else if(frame.func->_rs == UNSET) {
         frame.func->_rs = NORETURN;
-
+    }
     frame.set_status(ParseFrame::PARSED);
 }
 
@@ -1095,6 +1130,20 @@ Parser::split_block(
     b->_end = addr;
     b->_lastInsn = previnsn;
     rd->blocksByRange.insert(b); 
+    // Any functions holding b that have already been finalized
+    // need to have their caches invalidated so that they will
+    // find out that they have this new 'ret' block
+    std::set<Function*> prev_owners;
+    rd->findFuncs(b->start(),prev_owners);
+    for(std::set<Function*>::iterator oit = prev_owners.begin();
+        oit != prev_owners.end(); ++oit)
+    {
+        Function * po = *oit;
+        po->_cache_valid = false;
+        parsing_printf("[%s:%d] split of [%lx,%lx) invalidates cache of "
+                "func at %lx\n",
+        FILE__,__LINE__,b->start(),b->end(),po->addr());
+    }
 
     // if we're re-parsing in this function, inform user program of the split
     if (owner->_extents.size()) {

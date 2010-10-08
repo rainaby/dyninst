@@ -88,6 +88,32 @@ bool Function::setFramePtrRegnum(int regnum)
     return true;
 }
 
+Offset Function::getPtrOffset() const
+{
+    Offset retval = 0;
+    for (unsigned i = 0; i < symbols_.size(); ++i) {
+        Offset tmp_off = symbols_[i]->getPtrOffset();
+        if (tmp_off) {
+           if (retval == 0) retval = tmp_off;
+           assert(retval == tmp_off);
+        }
+    }
+    return retval;
+}
+
+Offset Function::getTOCOffset() const
+{
+    Offset retval = 0;
+    for (unsigned i = 0; i < symbols_.size(); ++i) {
+        Offset tmp_toc = symbols_[i]->getLocalTOC();
+        if (tmp_toc) {
+            if (retval == 0) retval = tmp_toc;
+            assert(retval == tmp_toc);
+        }
+    }
+    return retval;
+}
+
 static std::vector<Dyninst::SymtabAPI::VariableLocation> emptyLocVec;
 std::vector<Dyninst::SymtabAPI::VariableLocation> &Function::getFramePtr() 
 {
@@ -186,7 +212,15 @@ bool Function::getParams(std::vector<localVar *> &params)
    localVarCollection *lvs = NULL;
    if (!getAnnotation(lvs, FunctionParametersAnno))
    {
-      return false;
+      if (!setupParams())
+      {
+         return false;
+      }
+
+      if (!getAnnotation(lvs, FunctionParametersAnno))
+      {
+         return false;
+      }
    }
 
    if (!lvs)
@@ -197,9 +231,7 @@ bool Function::getParams(std::vector<localVar *> &params)
 
    params = *(lvs->getAllVars());
 
-   if (params.size())
-      return true;
-   return false;
+   return true;
 }
 
 bool Function::addLocalVar(localVar *locVar)
@@ -228,6 +260,30 @@ bool Function::addParam(localVar *param)
 
 	if (!getAnnotation(ps, FunctionParametersAnno))
 	{
+                if (!setupParams())
+                {
+                        return false;
+                }
+
+                if (!getAnnotation(ps, FunctionParametersAnno))
+                {
+			fprintf(stderr, "%s[%d]:  failed to get local var collecton anno\n", 
+					FILE__, __LINE__);
+			return false;
+                }
+	}
+
+	ps->addLocalVar(param);
+
+	return true;
+}
+
+bool Function::setupParams()
+{
+	localVarCollection *ps = NULL;
+
+	if (!getAnnotation(ps, FunctionParametersAnno))
+	{
 		ps = new localVarCollection();
 
 		if (!addAnnotation(ps, FunctionParametersAnno))
@@ -237,10 +293,8 @@ bool Function::addParam(localVar *param)
 			return false;
 		}
 	}
-
-	ps->addLocalVar(param);
-
-	return true;
+        
+        return true;
 }
 
 Function::~Function()
