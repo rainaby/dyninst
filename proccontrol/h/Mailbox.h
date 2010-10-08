@@ -37,7 +37,7 @@
 namespace Dyninst {
 namespace ProcControlAPI {
 
-class Mailbox
+class PROCCONTROL_EXPORT Mailbox
 {
 public:
    Mailbox();

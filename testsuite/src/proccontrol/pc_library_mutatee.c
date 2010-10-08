@@ -30,6 +30,7 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
+#include <cassert>
 #include "pcontrol_mutatee_tools.h"
 
 
@@ -59,7 +60,22 @@ void closeLib(const char *lib, void *handle)
 }
 
 #else
-#error Implement windows
+#include <windows.h>
+#define LIBTESTA "./libtestA.dll"
+#define LIBTESTB "./libtestB.dll"
+
+void *openLib(const char *lib)
+{
+	HINSTANCE handle = LoadLibrary(lib);
+	return (void *) handle;
+}
+
+void closeLib(const char *lib, void *vhandle)
+{
+   HINSTANCE handle = (HINSTANCE) vhandle;
+   assert(0);   
+}
+
 #endif
 
 static int threadFunc(int myid, void *data)

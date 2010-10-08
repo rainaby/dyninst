@@ -688,19 +688,22 @@ class installed_breakpoint
 class int_notify {
    friend int_notify *notify();
    friend EventNotify *Dyninst::ProcControlAPI::evNotify();
- private:
+ protected:	
    static int_notify *the_notify;
    EventNotify *up_notify;
    std::set<EventNotify::notify_cb_t> cbs;
-   int pipe_in;
-   int pipe_out;
-   int pipe_count;
    int events_noted;
-   void writeToPipe();
-   void readFromPipe();
-   bool createPipe();
+   bool initialized;
+   virtual void plat_noteEvent() = 0;
+   virtual void plat_clearEvent() = 0;
+   virtual bool plat_init() = 0;
+   virtual int plat_getPipeIn();
+   virtual void *plat_getHandle();
+
+   static int_notify *plat_createNotify();
  public:
    int_notify();
+   virtual ~int_notify();
    
    void noteEvent();
    void clearEvent();
@@ -708,6 +711,7 @@ class int_notify {
    void removeCB(EventNotify::notify_cb_t cb);
    bool hasEvents();
    int getPipeIn();
+   void *getHandle();
 };
 int_notify *notify();
 

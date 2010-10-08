@@ -31,75 +31,86 @@
 
 
 #if !defined(SYMTAB_EXPORT)
-  #if defined(_MSC_VER)
-    #if defined SYMTAB_LIB
-      #define SYMTAB_EXPORT __declspec(dllexport)
-    #else
-      #define SYMTAB_EXPORT __declspec(dllimport)
-    #endif
-  #else
-    #define SYMTAB_EXPORT
-  #endif
+#if defined(_MSC_VER)
+#if defined SYMTAB_LIB
+#define SYMTAB_EXPORT __declspec(dllexport)
+#else
+#define SYMTAB_EXPORT __declspec(dllimport)
+#endif
+#else
+#define SYMTAB_EXPORT
+#endif
 #endif
 
 #if !defined(COMMON_EXPORT)
-  #if defined (_MSC_VER)
-    #if defined(COMMON_LIB)
-       #define COMMON_EXPORT __declspec(dllexport)
-    #else
-       #define COMMON_EXPORT __declspec(dllimport)   
-    #endif
-  #else
-    #define COMMON_EXPORT
-  #endif
+#if defined (_MSC_VER)
+#if defined(COMMON_LIB)
+#define COMMON_EXPORT __declspec(dllexport)
+#else
+#define COMMON_EXPORT __declspec(dllimport)   
+#endif
+#else
+#define COMMON_EXPORT
+#endif
 #endif
 
 #if !defined(COMMON_TEMPLATE_EXPORT)
-  #if defined (_MSC_VER)
-    #if defined(COMMON_LIB) || defined(INSTRUCTION_LIB) || \
-		defined(SYMTAB_LIB)	|| defined(BPATCH_LIBRARY)
-       #define COMMON_TEMPLATE_EXPORT __declspec(dllexport)
-    #else
-       #define COMMON_TEMPLATE_EXPORT __declspec(dllimport)   
-    #endif
-  #else
-    #define COMMON_TEMPLATE_EXPORT
-  #endif
+#if defined (_MSC_VER)
+#if defined(COMMON_LIB) || defined(INSTRUCTION_LIB) || defined(SYMTAB_LIB)	|| defined(BPATCH_LIBRARY)
+#define COMMON_TEMPLATE_EXPORT __declspec(dllexport)
+#else
+#define COMMON_TEMPLATE_EXPORT __declspec(dllimport)   
+#endif
+#else
+#define COMMON_TEMPLATE_EXPORT
+#endif
 #endif
 
 #if !defined(INSTRUCTION_EXPORT)
-  #if defined(_MSC_VER)
-    #if defined(INSTRUCTION_LIB)
-      #define INSTRUCTION_EXPORT __declspec(dllexport)
-    #else
-      #define INSTRUCTION_EXPORT __declspec(dllimport)
-    #endif
-  #else
-    #define INSTRUCTION_EXPORT
+#if defined(_MSC_VER)
+#if defined(INSTRUCTION_LIB)
+#define INSTRUCTION_EXPORT __declspec(dllexport)
+#else
+#define INSTRUCTION_EXPORT __declspec(dllimport)
+#endif
+#else
+#define INSTRUCTION_EXPORT
 #endif
 #endif
 
 #if !defined(PARSER_EXPORT)
-  #if defined(_MSC_VER)
-    #if defined(PARSER_LIB)
-      #define PARSER_EXPORT __declspec(dllexport)
-    #else
-      #define PARSER_EXPORT __declspec(dllimport)
-    #endif
-  #else
-    #define PARSER_EXPORT
+#if defined(_MSC_VER)
+#if defined(PARSER_LIB)
+#define PARSER_EXPORT __declspec(dllexport)
+#else
+#define PARSER_EXPORT __declspec(dllimport)
+#endif
+#else
+#define PARSER_EXPORT
 #endif
 #endif
 
 #if !defined(DATAFLOW_EXPORT)
-  #if defined(_MSC_VER)
-    #if defined(DATAFLOW_LIB)
-      #define DATAFLOW_EXPORT __declspec(dllexport)
-    #else
-      #define DATAFLOW_EXPORT __declspec(dllimport)
-    #endif
-  #else
-    #define DATAFLOW_EXPORT
+#if defined(_MSC_VER)
+#if defined(DATAFLOW_LIB)
+#define DATAFLOW_EXPORT __declspec(dllexport)
+#else
+#define DATAFLOW_EXPORT __declspec(dllimport)
+#endif
+#else
+#define DATAFLOW_EXPORT
+#endif
+#endif
+
+#if !defined(PROCCONTROL_EXPORT)
+#if defined(_MSC_VER)
+#if defined(PROCCONTROL_LIB)
+#define PROCCONTROL_EXPORT __declspec(dllexport)
+#else
+#define PROCCONTROL_EXPORT __declspec(dllimport)
+#endif
+#else
+#define PROCCONTROL_EXPORT
 #endif
 #endif
 

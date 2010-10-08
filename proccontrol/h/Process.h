@@ -69,7 +69,7 @@ class Event;
 class RegisterPool;
 class Breakpoint;
 
-class Breakpoint 
+class PROCCONTROL_EXPORT Breakpoint 
 {
    friend class ::int_breakpoint;
    friend void dyn_detail::boost::checked_delete<Breakpoint>(Breakpoint *);
@@ -94,7 +94,7 @@ class Breakpoint
    Dyninst::Address getToAddress() const;
 };
 
-class Library
+class PROCCONTROL_EXPORT Library
 {
    friend class ::int_library;
  private:
@@ -109,7 +109,7 @@ class Library
    Dyninst::Address getDataLoadAddress() const;
 };
 
-class LibraryPool
+class PROCCONTROL_EXPORT LibraryPool
 {
    friend class ::int_process;
    friend class Dyninst::ProcControlAPI::Process;
@@ -118,7 +118,7 @@ class LibraryPool
    LibraryPool();
    ~LibraryPool();
  public:
-  class iterator {
+  class PROCCONTROL_EXPORT iterator {
       friend class Dyninst::ProcControlAPI::LibraryPool;
    private:
       std::set<int_library *>::iterator int_iter;
@@ -132,7 +132,7 @@ class LibraryPool
       LibraryPool::iterator operator++(int);
   };
 
-  class const_iterator {
+  class PROCCONTROL_EXPORT const_iterator {
      friend class Dyninst::ProcControlAPI::LibraryPool;
   private:
      std::set<int_library *>::iterator int_iter;
@@ -157,7 +157,7 @@ class LibraryPool
   Library::ptr getLibraryByName(std::string s) const;
 };
 
-class IRPC
+class PROCCONTROL_EXPORT IRPC
 {
    friend class ::int_iRPC;
    friend void dyn_detail::boost::checked_delete<IRPC>(IRPC *);
@@ -186,7 +186,7 @@ class IRPC
    unsigned long getStartOffset() const;
 };
 
-class Process
+class PROCCONTROL_EXPORT Process
 {
  private:
    friend class ::int_process;
@@ -218,10 +218,9 @@ class Process
    /**
     * Create and attach to new processes
     **/
-   static const std::map<int,int> emptyFDs;
    static Process::ptr createProcess(std::string executable,
                                      const std::vector<std::string> &argv,
-                                     const std::map<int,int> &fds = emptyFDs);
+                                     const std::map<int,int> *fds = NULL);
    static Process::ptr attachProcess(Dyninst::PID pid, std::string executable = "");
 
    /**
@@ -311,7 +310,7 @@ class Process
    bool getPostedIRPCs(std::vector<IRPC::ptr> &rpcs) const;
 };
 
-class Thread
+class PROCCONTROL_EXPORT Thread
 {
  protected:
    friend class ::int_thread;
@@ -353,7 +352,7 @@ class Thread
    IRPC::const_ptr getRunningIRPC() const;
 };
 
-class ThreadPool
+class PROCCONTROL_EXPORT ThreadPool
 {
  private:
    friend class ::int_threadPool;
@@ -365,7 +364,7 @@ class ThreadPool
    /**
     * Iterators
     **/
-   class iterator {
+   class PROCCONTROL_EXPORT iterator {
       friend class Dyninst::ProcControlAPI::ThreadPool;
    private:
       int_threadPool *curp;
@@ -384,7 +383,7 @@ class ThreadPool
    iterator end();
    iterator find(Dyninst::LWP lwp);
 
-   class const_iterator {
+   class PROCCONTROL_EXPORT const_iterator {
       friend class Dyninst::ProcControlAPI::ThreadPool;
    private:
       int_threadPool *curp;
@@ -410,7 +409,7 @@ class ThreadPool
    Thread::ptr getInitialThread();
 };
 
-class RegisterPool
+class PROCCONTROL_EXPORT RegisterPool
 { 
    friend class Dyninst::ProcControlAPI::Thread;
  private:
@@ -420,7 +419,7 @@ class RegisterPool
    RegisterPool(const RegisterPool &rp);
    ~RegisterPool();
    
-   class iterator {
+   class PROCCONTROL_EXPORT iterator {
       friend class Dyninst::ProcControlAPI::RegisterPool;
    private:
       typedef std::map<Dyninst::MachRegister, Dyninst::MachRegisterVal>::iterator int_iter; 
@@ -437,7 +436,7 @@ class RegisterPool
    iterator end();
    iterator find(Dyninst::MachRegister r);
 
-   class const_iterator {
+   class PROCCONTROL_EXPORT const_iterator {
       friend class Dyninst::ProcControlAPI::RegisterPool;
    private:
       typedef std::map<Dyninst::MachRegister, Dyninst::MachRegisterVal>::const_iterator int_iter; 
@@ -461,7 +460,7 @@ class RegisterPool
    Thread::ptr getThread() const;
 };
 
-class EventNotify
+class PROCCONTROL_EXPORT EventNotify
 {
  private:
    friend class ::int_notify;
@@ -475,7 +474,7 @@ class EventNotify
    void registerCB(notify_cb_t cb);
    void removeCB(notify_cb_t cb);
 };
-EventNotify *evNotify();
+PROCCONTROL_EXPORT EventNotify *evNotify();
 
 }
 }

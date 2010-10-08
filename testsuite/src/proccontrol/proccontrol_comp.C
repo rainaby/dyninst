@@ -2,9 +2,13 @@
 #include "proccontrol_comp.h"
 #include "communication.h"
 
+#include <string>
 #include <cstdio>
 #include <cerrno>
 #include <cstring>
+#if defined(os_windows_test)
+#include <windows.h>
+#endif
 
 TEST_DLL_EXPORT ComponentTester *componentTesterFactory()
 {
@@ -45,6 +49,7 @@ bool ProcControlComponent::registerEventCounter(EventType et)
 {
    pccomp = this;
    Process::registerEventCallback(et, eventCounterFunction);
+   return true;
 }
 
 bool ProcControlComponent::checkThread(const Thread &thread)
@@ -74,7 +79,11 @@ Process::ptr ProcControlComponent::launchMutatee(RunGroup *group, ParameterDict 
    if (!verboseFormat) {
       args[n++] = "-q";
    }
+#if !defined(os_windows)
    args[n++] = "-un_socket";
+#else
+   args[n++] = "-inet_socket";
+#endif
    args[n++] = sockname;
 
    if (group->threadmode == SingleThreaded) {
@@ -119,7 +128,9 @@ Process::ptr ProcControlComponent::launchMutatee(RunGroup *group, ParameterDict 
       }
    }
    else if (group->useAttach == USEATTACH) {
-      Dyninst::PID pid = fork_mutatee();
+	  Dyninst::PID pid = 0;
+#if !defined(os_windows_test)
+      pid = fork_mutatee();
       if (!pid) {
          //Child
          execv(group->mutatee, (char * const *)args);
@@ -130,9 +141,24 @@ Process::ptr ProcControlComponent::launchMutatee(RunGroup *group, ParameterDict 
          logerror(buffer);
          exit(-1);
       }
+#else
+	  STARTUPINFO stinfo;
+	  PROCESS_INFORMATION procinfo;
+      memset(&stinfo, 0, sizeof(STARTUPINFO));
+      stinfo.cb = sizeof(STARTUPINFO);
+	  std::string arg_string;
+	  for (unsigned i=0; args[i]; i++) {
+		  arg_string += args[i];
+		  arg_string += " ";
+	  }
+      BOOL result = CreateProcess(group->mutatee, const_cast<char *>(arg_string.c_str()),
+		                        NULL, NULL, FALSE, 0,
+		                        NULL, NULL, &stinfo, &procinfo);	 
+	  pid = procinfo.dwProcessId;
+#endif
       int sockfd;
-      bool result = acceptConnections(1, &sockfd);
-      if (!result) {
+      bool result_b = acceptConnections(1, &sockfd);
+      if (!result_b) {
          logerror("Unable to accept attach connection\n");
          return Process::ptr();
       }
@@ -372,10 +398,16 @@ ProcControlComponent::~ProcControlComponent()
 {
 }
 
+#if !defined(os_windows_test)
 #include <unistd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/types.h>
+#else
+#include <WinSock.h>
+#endif
+
+#if !defined(os_windows_test)
 
 bool ProcControlComponent::setupServerSocket()
 {
@@ -412,6 +444,109 @@ bool ProcControlComponent::setupServerSocket()
    return true;
 }
 
+bool ProcControlComponent::cleanSocket()
+{
+   if (!sockname)
+      return false;
+
+   int result = unlink(sockname);
+   if (result == -1) {
+      logerror("Could not clean socket\n");
+      return false;
+   }
+   free(sockname);
+   sockname = NULL;
+   result = close(sockfd);
+   if (result == -1) {
+      logerror("Could not close socket\n");
+      return false;
+   }
+   return true;
+}
+
+#else
+
+bool ProcControlComponent::setupServerSocket()
+{
+   WSADATA data;
+   bool wsaok = false;
+
+   // request WinSock 2.0
+   if (WSAStartup(MAKEWORD(2,0), &data) == 0) {
+      // verify that the version that was provided is one we can use
+      if (LOBYTE(data.wVersion) != 2 || HIBYTE(data.wVersion) != 0)
+      {
+		 fprintf(stderr, "low = %d, high = %d\n", (int) LOBYTE(data.wVersion), (int) HIBYTE(data.wVersion));
+		 logerror("Version error setting up socket\n");
+         return false;
+      }
+   }
+
+   //  set up socket to accept connections from mutatees (on demand)
+   sockfd = socket(PF_INET, SOCK_STREAM, 0);
+
+   if (sockfd == INVALID_SOCKET || sockfd == SOCKET_ERROR) {
+	  logerror("new socket failed, sock = %d, lasterror = %d\n",
+			   (unsigned int) sockfd, WSAGetLastError());
+      return false;
+   }
+
+   struct sockaddr_in saddr;
+   struct in_addr *inadr;
+   struct hostent *hostptr;
+
+   hostptr = gethostbyname("localhost");
+   inadr = (struct in_addr *) ((void*) hostptr->h_addr_list[0]);
+   memset((void*) &saddr, 0, sizeof(saddr));
+   saddr.sin_family = PF_INET;
+   saddr.sin_port = htons(0); // ask system to assign
+   saddr.sin_addr = *inadr;
+  
+   int result = bind(sockfd, (struct sockaddr *) &saddr, sizeof(saddr));
+   if (result == -1) { 
+     logerror("bind socket failed\n");
+	 return false;
+   }
+
+   //  get the port number that was assigned to us
+   int length = sizeof(saddr);
+   result = getsockname(sockfd, (struct sockaddr *) &saddr, &length);
+   if (result == -1) 
+   {
+     logerror("getsockname failed\n");
+	 return false;
+   }
+   int port = ntohs(saddr.sin_port);
+
+  // set socket to listen for connections  
+  // (we will explicitly accept in the main event loop)
+  result = listen(sockfd, 32);
+  if (result == -1) {
+	  logerror("listen failed\n");
+	  return false;
+  }
+
+  char sockname_local[32];
+  snprintf(sockname_local, 32, "%d", port);
+  sockname = strdup(sockname_local);
+
+  return true;
+}
+
+bool ProcControlComponent::cleanSocket()
+{
+   sockname = NULL;
+   int result = closesocket(sockfd);
+   if (result == -1) {
+      logerror("Could not close socket\n");
+      return false;
+   }
+   sockfd = 0;
+   return true;
+}
+
+#endif
+
 bool ProcControlComponent::acceptConnections(int num, int *attach_sock)
 {
    std::vector<int> socks;
@@ -441,8 +576,13 @@ bool ProcControlComponent::acceptConnections(int num, int *attach_sock)
 
       if (FD_ISSET(sockfd, &readset))
       {
+#if !defined(os_windows_test)
          struct sockaddr_un addr;
          socklen_t addr_size = sizeof(struct sockaddr_un);
+#else
+		 struct sockaddr_in addr;
+		 int addr_size = sizeof(struct sockaddr_in);
+#endif
          int newsock = accept(sockfd, (struct sockaddr *) &addr, &addr_size);
          if (newsock == -1) {
             char error_str[1024];
@@ -488,36 +628,6 @@ bool ProcControlComponent::acceptConnections(int num, int *attach_sock)
    return true;
 }
 
-bool ProcControlComponent::cleanSocket()
-{
-   if (!sockname)
-      return false;
-
-   int result = unlink(sockname);
-   if (result == -1) {
-      logerror("Could not clean socket\n");
-      return false;
-   }
-   free(sockname);
-   sockname = NULL;
-   result = close(sockfd);
-   if (result == -1) {
-      logerror("Could not close socket\n");
-      return false;
-   }
-   return true;
-}
-
-bool ProcControlComponent::recv_message(unsigned char *msg, unsigned msg_size, Process::ptr p)
-{
-  return recv_message(msg, msg_size, process_socks[p]);
-}
-
-bool ProcControlComponent::send_message(unsigned char *msg, unsigned msg_size, Process::ptr p)
-{
-  return send_message(msg, msg_size, process_socks[p]);
-}
-
 bool ProcControlComponent::recv_message(unsigned char *msg, unsigned msg_size, int sfd)
 {
    int result;
@@ -558,8 +668,12 @@ bool ProcControlComponent::recv_message(unsigned char *msg, unsigned msg_size, i
          break;
       }
    } 
-                          
-   result = recv(sfd, msg, msg_size, MSG_WAITALL);
+
+   int options = 0;
+#if !defined(os_windows_test)
+   options |= MSG_WAITALL;
+#endif
+   result = recv(sfd, (char *) msg, msg_size, options);
    if (result == -1) {
       char error_str[1024];
       snprintf(error_str, 1024, "Unable to recieve message: %s\n", strerror(errno));
@@ -569,37 +683,18 @@ bool ProcControlComponent::recv_message(unsigned char *msg, unsigned msg_size, i
    return true;
 }
 
-bool ProcControlComponent::recv_broadcast(unsigned char *msg, unsigned msg_size)
-{
-   unsigned char *cur_pos = msg;
-   for (std::map<Process::ptr, int>::iterator i = process_socks.begin(); i != process_socks.end(); i++) {
-      bool result = recv_message(cur_pos, msg_size, i->second);
-      if (!result) 
-         return false;
-      cur_pos += msg_size;
-   }
-   return true;
-}
-
 bool ProcControlComponent::send_message(unsigned char *msg, unsigned msg_size, int sfd)
 {
-   int result = send(sfd, msg, msg_size, MSG_NOSIGNAL);
+   int options = 0;
+#if !defined(os_windows_test)
+   options |= MSG_NOSIGNAL
+#endif
+   int result = send(sfd, (char *) msg, msg_size, options);
    if (result == -1) {
       char error_str[1024];
       snprintf(error_str, 1024, "Mutator unable to send message: %s\n", strerror(errno));
       logerror(error_str);
       return false;
-   }
-   return true;
-}
-
-bool ProcControlComponent::send_broadcast(unsigned char *msg, unsigned msg_size)
-{
-   unsigned char *cur_pos = msg;
-   for (std::map<Process::ptr, int>::iterator i = process_socks.begin(); i != process_socks.end(); i++) {
-      bool result = send_message(msg, msg_size, i->second);
-      if (!result) 
-         return false;
    }
    return true;
 }
@@ -640,3 +735,35 @@ bool ProcControlComponent::block_for_events()
    return true;
 }
 
+bool ProcControlComponent::recv_message(unsigned char *msg, unsigned msg_size, Process::ptr p)
+{
+  return recv_message(msg, msg_size, process_socks[p]);
+}
+
+bool ProcControlComponent::send_message(unsigned char *msg, unsigned msg_size, Process::ptr p)
+{
+  return send_message(msg, msg_size, process_socks[p]);
+}
+
+bool ProcControlComponent::recv_broadcast(unsigned char *msg, unsigned msg_size)
+{
+   unsigned char *cur_pos = msg;
+   for (std::map<Process::ptr, int>::iterator i = process_socks.begin(); i != process_socks.end(); i++) {
+      bool result = recv_message(cur_pos, msg_size, i->second);
+      if (!result) 
+         return false;
+      cur_pos += msg_size;
+   }
+   return true;
+}
+
+bool ProcControlComponent::send_broadcast(unsigned char *msg, unsigned msg_size)
+{
+   unsigned char *cur_pos = msg;
+   for (std::map<Process::ptr, int>::iterator i = process_socks.begin(); i != process_socks.end(); i++) {
+      bool result = send_message(msg, msg_size, i->second);
+      if (!result) 
+         return false;
+   }
+   return true;
+}

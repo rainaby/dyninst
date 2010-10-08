@@ -33,6 +33,7 @@
 #define DTHREAD_H_
 
 #include <stdlib.h>
+#include "dynutil/h/dyntypes.h"
 
 #if !defined(os_windows)
 #define cap_pthreads
@@ -46,17 +47,18 @@ class DThread {
    pthread_t thrd;
 #elif defined(os_windows)
    HANDLE thrd;
+   long id_;
 #endif
    bool live;   
  public:
-   DThread();
-   ~DThread();
+   COMMON_EXPORT DThread();
+   COMMON_EXPORT ~DThread();
    typedef void (*initial_func_t)(void *);
 
-   static long self();
-   bool spawn(initial_func_t func, void *param);
-   bool join();
-   long id();
+   COMMON_EXPORT static long self();
+   COMMON_EXPORT bool spawn(initial_func_t func, void *param);
+   COMMON_EXPORT bool join();
+   COMMON_EXPORT long id();
 };
 
 class Mutex {
@@ -64,33 +66,37 @@ class Mutex {
 #if defined(cap_pthreads)
    pthread_mutex_t mutex;
 #elif defined(os_windows)
-   CRITICAL_SECTION mutex;
+   HANDLE mutex;
 #endif
  public:
-   Mutex(bool recursive=false);
-   ~Mutex();
+   COMMON_EXPORT Mutex(bool recursive=false);
+   COMMON_EXPORT ~Mutex();
 
-   bool lock();
-   bool unlock();
+   COMMON_EXPORT bool lock();
+   COMMON_EXPORT bool unlock();
 };
 
 class CondVar {
 #if defined(cap_pthreads)
    pthread_cond_t cond;
 #elif defined(os_windows)
-   CONDITION_VARIABLE cond;
+   int waiters_count_;
+   CRITICAL_SECTION waiters_count_lock_;
+   HANDLE sema_;
+   HANDLE waiters_done_;
+   size_t was_broadcast_;
 #endif
    Mutex *mutex;
    bool created_mutex;
  public:
-   CondVar(Mutex *m = NULL);
-   ~CondVar();
+	COMMON_EXPORT CondVar(Mutex *m = NULL);
+    COMMON_EXPORT ~CondVar();
 
-   bool unlock();
-   bool lock();
-   bool signal();
-   bool broadcast();
-   bool wait();
+    COMMON_EXPORT bool unlock();
+    COMMON_EXPORT bool lock();
+    COMMON_EXPORT bool signal();
+    COMMON_EXPORT bool broadcast();
+    COMMON_EXPORT bool wait();
 };
 
 #endif

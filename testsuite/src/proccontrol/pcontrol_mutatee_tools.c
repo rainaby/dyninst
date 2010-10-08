@@ -28,12 +28,24 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-#include "mutatee_util.h"
 #include "pcontrol_mutatee_tools.h"
 #include "communication.h"
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <assert.h>
+
+#if defined(os_windows_test)
+#include <windows.h>
+#if defined(__cplusplus)
+extern "C" {
+#endif
+__declspec(dllimport) int _getpid(void);
+#if defined(__cplusplus)
+}
+#endif
+
+#endif
 
 thread_t threads[MAX_POSSIBLE_THREADS];
 int thread_results[MAX_POSSIBLE_THREADS];
@@ -42,6 +54,7 @@ int sockfd;
 
 typedef struct {
    thread_t thread_id;
+   int thread_index;
    int (*func)(int, void*);
    void *data;
 } datagram;
@@ -57,7 +70,6 @@ void *ThreadTrampoline(void *d)
    int func_result;
       
    datag = (datagram *) d;
-   thread_id = datag->thread_id;
    func = datag->func;
    data = datag->data;
    free(datag);
@@ -65,7 +77,7 @@ void *ThreadTrampoline(void *d)
    testLock(&thread_startup_lock);
    testUnlock(&thread_startup_lock);
 
-   func_result = func((unsigned long)thread_id, data);
+   func_result = func(datag->thread_index, data);
    
    return (void *) (long) func_result;
 }
@@ -99,21 +111,35 @@ int MultiThreadInit(int (*init_func)(int, void*), void *thread_data)
       testLock(&thread_startup_lock);
       for (j = 0; j < num_threads; j++) {
          datagram *data = (datagram *) malloc(sizeof(datagram));
-         data->thread_id = (thread_t)j;
+         data->thread_index = j;
          data->func = init_func;
          data->data = thread_data;
          threads[j] = spawnNewThread((void *) ThreadTrampoline, (void *) data);
+		 data->thread_id = threads[j];
       }
    }
    return 0;
 }
 
+#if defined(os_windows_test)
+static int P_getpid()
+{
+	return _getpid();
+}
+#else
+static int P_getpid()
+{
+	return getpid();
+}
+#endif
+
 int handshakeWithServer()
 {
    int result;
+   handshake shake;
    send_pid spid;
    spid.code = SEND_PID_CODE;
-   spid.pid = getpid();
+   spid.pid = P_getpid();
 
    result = send_message((unsigned char *) &spid, sizeof(send_pid));
    if (result == -1) {
@@ -121,7 +147,6 @@ int handshakeWithServer()
       return -1;
    }
 
-   handshake shake;
    result = recv_message((unsigned char *) &shake, sizeof(handshake));
    if (result != 0) {
       fprintf(stderr, "Error recieving message\n");
@@ -199,14 +224,39 @@ int finiProcControlTest(int expected_ret_code)
    return has_error ? -1 : 0;
 }
 
+#if !defined(os_windows_test)
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#else
+#include <WinSock.h>
+#include <windows.h>
+
+int initWindowsSocket()
+{
+   WSADATA data;
+
+   // request WinSock 2.0
+   if (WSAStartup(MAKEWORD(2,0), &data) == 0) {
+      // verify that the version that was provided is one we can use
+      if (LOBYTE(data.wVersion) != 2 || !HIBYTE(data.wVersion) != 0)
+      {
+		 logerror("Version error setting up socket\n");
+         return -1;
+      }
+   }
+   return 0;
+}
+#endif
 
 int initMutatorConnection()
 {
    int result;
    char *un_socket = NULL;
+   char *inet_socket = NULL;
+   struct hostent *hostptr;
+   struct in_addr *inadr;
+   struct sockaddr_in server_addr;
    int i;
 
    for (i = 0; i < gargc; i++) {
@@ -214,34 +264,70 @@ int initMutatorConnection()
          un_socket = gargv[i+1];
          break;
       }
+	  if (strcmp(gargv[i], "-inet_socket") == 0) {
+		  inet_socket = gargv[i+1];
+		  break;
+	  }
    }
    
-   if (un_socket) {
-      sockfd = socket(PF_UNIX, SOCK_STREAM, 0);
-      if (sockfd == -1) {
-         perror("Failed to create socket");
-         return -1;
-      }
-      
-      struct sockaddr_un server_addr;
-      memset(&server_addr, 0, sizeof(struct sockaddr_un));
-      server_addr.sun_family = PF_UNIX;
-      strncpy(server_addr.sun_path, un_socket, sizeof(server_addr.sun_path));
-
-      result = connect(sockfd, (struct sockaddr *) &server_addr, sizeof(struct sockaddr_un));
-      if (result != 0) {
-         perror("Failed to connect to server");
-         return -1;
-      }
+#if !defined(os_windows_test)
+   assert(un_socket);
+   sockfd = socket(PF_UNIX, SOCK_STREAM, 0);
+   if (sockfd == -1) {
+      perror("Failed to create socket");
+      return -1;
+   }
+     
+   struct sockaddr_un server_addr;
+   memset(&server_addr, 0, sizeof(struct sockaddr_un));
+   server_addr.sun_family = PF_UNIX;
+   strncpy(server_addr.sun_path, un_socket, sizeof(server_addr.sun_path));  
+#else
+   assert(inet_socket);
+   result = initWindowsSocket();
+   if (result == -1) {
+	   fprintf(stderr, "Windows init failed\n");
+	   return -1;
+   }
+   
+   sockfd = socket(PF_INET, SOCK_STREAM, 0);
+   if (sockfd == INVALID_SOCKET || sockfd == SOCKET_ERROR) {
+	  fprintf(stderr, "New socket failed\n");
+      return -1;
    }
 
+   hostptr = gethostbyname("localhost");
+   inadr = (struct in_addr *) ((void*) hostptr->h_addr_list[0]);
+  
+   memset(&server_addr, 0, sizeof(server_addr));
+   server_addr.sin_family = PF_INET;
+   server_addr.sin_port = atoi(inet_socket);
+   server_addr.sin_addr = *inadr;
+
+
+   /*
+   struct sockaddr_in {
+        short   sin_family;
+        u_short sin_port;
+        struct  in_addr sin_addr;
+        char    sin_zero[8];
+};
+*/   
+#endif
+
+   result = connect(sockfd, (struct sockaddr *) &server_addr, sizeof(server_addr));
+   if (result != 0) {
+      perror("Failed to connect to server");
+      return -1;
+   }
+   
    return 0;
 }
 
 int send_message(unsigned char *msg, size_t msg_size)
 {
    int result;
-   result = send(sockfd, msg, msg_size, 0);
+   result = send(sockfd, (char *) msg, msg_size, 0);
    if (result == -1) {
       perror("Mutatee unable to send message");
       return -1;
@@ -253,7 +339,12 @@ int recv_message(unsigned char *msg, size_t msg_size)
 {
    int result = -1;
    while( result != msg_size && result != 0 ) {
-       result = recv(sockfd, msg, msg_size, MSG_WAITALL);
+#if !defined(os_windows_test)
+	   int options = MSG_WAITALL;
+#else
+	   int options = 0;
+#endif
+       result = recv(sockfd, (char *) msg, msg_size, options);
 
        if (result == -1 && errno != EINTR ) {
           perror("Mutatee unable to recieve message");

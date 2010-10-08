@@ -32,10 +32,6 @@
 
 #include "mutatee_util.h"
 
-#ifdef os_windows_test
-#include <process.h>
-#endif
-
 /* Externally accessed function prototypes.  These must have globally unique
  * names.  I suggest following the pattern <testname>_<function>
  */

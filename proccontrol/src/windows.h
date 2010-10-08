@@ -34,6 +34,9 @@
 
 #include "proccontrol/src/int_process.h"
 #include "proccontrol/src/x86_process.h"
+#include "proccontrol/h/Generator.h"
+#include "proccontrol/h/Decoder.h"
+#include "proccontrol/h/Handler.h"
 
 class windows_process : public x86_process
 {
@@ -43,6 +46,7 @@ class windows_process : public x86_process
    virtual ~windows_process();
 
    virtual bool plat_create();
+   bool plat_create_gen();
    virtual bool plat_attach();
 
    virtual bool plat_contProcess();
@@ -83,7 +87,17 @@ class windows_process : public x86_process
                                   std::set<response::ptr> &async_responses);
    virtual bool initLibraryMechanism();
    virtual bool plat_isStaticBinary();
-private:
+
+   DEBUG_EVENT *getEventCause(Event::ptr ev);
+   void addEventCause(Event::ptr ev, const DEBUG_EVENT &dev);
+   void rmEventCause(Event::ptr ev);
+
+   PROCESS_INFORMATION *getProcInfo();
+protected:
+
+	Mutex event_causes_lock;
+	std::map<Event::ptr, DEBUG_EVENT *> event_causes;
+
 	PROCESS_INFORMATION procInfo;
 	bool procinfo_set;
 };
@@ -91,6 +105,9 @@ private:
 class windows_thread : public int_thread
 {
 public:
+   windows_thread(int_process *proc, Dyninst::THR_ID thr_id, Dyninst::LWP lwp_id);
+   virtual ~windows_thread();
+
    virtual bool plat_getAllRegisters(int_registerPool &pool);
    virtual bool plat_getRegister(Dyninst::MachRegister reg, Dyninst::MachRegisterVal &val);
    virtual bool plat_setAllRegisters(int_registerPool &pool);
@@ -107,6 +124,89 @@ private:
 	HANDLE hThread;
 
 	void *getContextForThread(unsigned &alloc_size);
+};
+
+class InterruptData {
+public:
+	union {
+		struct {
+			windows_process *proc;
+		} proc_spawn_data;
+	} interruptData;
+	enum {
+		no_op = 0,
+		proc_spawn
+	} interruptOp;
+	bool is_interrupted;
+	bool ret_value;
+	CondVar interrupt_lock;
+
+	InterruptData();
+	~InterruptData();
+};
+
+class GeneratorWindows : public GeneratorMT
+{
+ private:
+	InterruptData interrupt;
+	bool triggerInterrupt();
+	HANDLE generator_thread_handle;
+ public:
+   GeneratorWindows();
+   virtual ~GeneratorWindows();
+
+   virtual bool initialize();
+   virtual bool canFastHandle();
+   virtual ArchEvent *getEvent(bool block);
+
+   virtual bool isInterrupted();
+   virtual void handleInterrupt();
+
+   bool spawnProc(windows_process *proc);
+
+   static GeneratorWindows *the_generator;
+};
+
+class ArchEventWindows : public ArchEvent
+{
+private:
+	DEBUG_EVENT ev;
+public:
+	ArchEventWindows(const DEBUG_EVENT &e);
+	~ArchEventWindows();
+	DEBUG_EVENT &getEvent();
+};
+
+class DecoderWindows : public Decoder
+{
+ public:
+   DecoderWindows();
+   virtual ~DecoderWindows();
+   virtual unsigned getPriority() const;
+   virtual bool decode(ArchEvent *ae, std::vector<Event::ptr> &events);
+};
+
+class WindowsBootstrapHandler : public Handler
+{
+ public:
+   WindowsBootstrapHandler();
+   virtual ~WindowsBootstrapHandler();
+   virtual handler_ret_t handleEvent(Event::ptr ev);
+   virtual int getPriority() const;
+   void getEventTypesHandled(std::vector<EventType> &etypes);
+};
+
+class windows_notify : public int_notify {
+ protected:
+   HANDLE hevent;
+   virtual void plat_noteEvent();
+   virtual void plat_clearEvent();
+   virtual bool plat_init();
+ public:
+   windows_notify();
+   virtual ~windows_notify();
+   
+   virtual void *plat_getHandle();
 };
 
 #endif

@@ -138,6 +138,34 @@ void Event::addSubservientEvent(Event::ptr ev)
    subservient_events.push_back(ev);
    ev->master_event = shared_from_this();
 }
+   
+EventType::Code EventType::code() const 
+{
+	return ecode;
+}
+
+EventType::Time EventType::time() const
+{
+	return etime;
+}
+
+EventType::EventType(Code e) : 
+	ecode(e),
+	etime(Any)
+{
+}
+
+EventType::EventType(Time t, Code e) : 
+	ecode(e),
+	etime(t)
+{
+}
+
+EventType::EventType() : 
+	ecode(Unset),
+	etime(None)
+{
+}
 
 std::string EventType::name() const
 {

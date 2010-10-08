@@ -52,7 +52,7 @@ class ArchEvent;
 class Event;
 class Mailbox;
 
-class Generator
+class PROCCONTROL_EXPORT Generator
 {
  public:
    static Generator *getDefaultGenerator();
@@ -99,11 +99,13 @@ class Generator
    virtual bool initialize() = 0;
    virtual bool canFastHandle() = 0;
    virtual ArchEvent *getEvent(bool block) = 0;
+   virtual bool isInterrupted();
+   virtual void handleInterrupt();
    //  Implemented by MT or ST
    virtual bool processWait(bool block) = 0;
 };
 
-class GeneratorMT : public Generator
+class PROCCONTROL_EXPORT GeneratorMT : public Generator
 {
  private:
    GeneratorMTInternals *sync;

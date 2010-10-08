@@ -1,6 +1,12 @@
 #if !defined(COMMUNICATION_H_)
 #define COMMUNICATION_H_
 
+#if defined(os_windows_test)
+typedef unsigned int uint32_t;
+typedef unsigned long long uint64_t;
+typedef int pid_t;
+#endif
+
 #define MAX_POSSIBLE_THREADS 512
 #define DEFAULT_NUM_THREADS 8
 #define DEFAULT_NUM_PROCS 8

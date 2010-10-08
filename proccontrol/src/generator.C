@@ -92,12 +92,15 @@ bool Generator::getAndQueueEventInt(bool block)
    ArchEvent *arch_event = NULL;
    vector<Event::ptr> events;
 
-   setState(process_blocked);
    result = processWait(block);
    if (isExitingState()) {
       pthrd_printf("Generator exiting after processWait\n");
       result = false;
       goto done;
+   }
+   if (isInterrupted()) {
+	   pthrd_printf("Generator interrupt after processWait\n");
+	   handleInterrupt();
    }
    if (!result) {
       goto done;
@@ -109,6 +112,10 @@ bool Generator::getAndQueueEventInt(bool block)
       pthrd_printf("Generator exiting after getEvent\n");
       result = false;
       goto done;
+   }
+   if (isInterrupted()) {
+	   pthrd_printf("Generator interrupt after getEvent\n");
+	   handleInterrupt();
    }
    if (!arch_event) {
       pthrd_printf("Error. Unable to recieve event\n");
@@ -183,6 +190,15 @@ bool Generator::hasLiveProc()
    return !procpool->for_each(allStopped, NULL);
 }
 
+bool Generator::isInterrupted()
+{
+	return false;
+}
+
+void Generator::handleInterrupt()
+{
+}
+
 struct GeneratorMTInternals
 {
    GeneratorMTInternals() {}
@@ -245,7 +261,7 @@ void GeneratorMT::start()
    }
    else {
       setState(none);
-   }
+   } 
    sync->init_cond.signal();
    sync->init_cond.unlock();
 
@@ -267,7 +283,7 @@ void GeneratorMT::main()
 bool GeneratorMT::processWait(bool block)
 {
    ProcessPool *pp = ProcPool();
-   pp->condvar()->lock();
+   setState(process_blocked);
    pthrd_printf("Checking for live processes\n");
    while (!hasLiveProc()) {
       pthrd_printf("Checked and found no live processes\n");
@@ -275,6 +291,10 @@ bool GeneratorMT::processWait(bool block)
          pthrd_printf("Returning from non-blocking processWait\n");
          return false;
       }
+	  if (isInterrupted()) {
+		  pthrd_printf("Generator interrupt in processWait\n");
+		  return true;
+	  }
       pp->condvar()->wait();
    }
    pp->condvar()->unlock();

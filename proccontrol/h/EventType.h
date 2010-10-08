@@ -35,7 +35,7 @@
 namespace Dyninst {
 namespace ProcControlAPI {
 
-class EventType
+class PROCCONTROL_EXPORT EventType
 {
  public:
    static const int Error               = -1;
@@ -74,12 +74,12 @@ class EventType
       Any
    } Time;
 
-   Code code() const { return ecode; }
-   Time time() const { return etime; }
+   Code code() const;
+   Time time() const;
 
-   EventType(Code e) : ecode(e), etime(Any) {}
-   EventType(Time t, Code e) : ecode(e), etime(t) {}
-   EventType() : ecode(Unset), etime(None) {}
+   EventType(Code e);
+   EventType(Time t, Code e);
+   EventType();
    
    std::string name() const;
  protected:
@@ -87,7 +87,7 @@ class EventType
    Time etime;
 };
 
-struct eventtype_cmp
+struct PROCCONTROL_EXPORT eventtype_cmp
 {
    bool operator()(const EventType &a, const EventType &b)
    {

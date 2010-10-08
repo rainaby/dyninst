@@ -38,7 +38,7 @@
 namespace Dyninst {
 namespace ProcControlAPI {
 
-class Decoder
+class PROCCONTROL_EXPORT Decoder
 {
  public:
    Decoder();
@@ -50,7 +50,7 @@ class Decoder
    virtual bool decode(ArchEvent *archE, std::vector<Event::ptr> &events) = 0;
 };
 
-struct decoder_cmp
+struct PROCCONTROL_EXPORT decoder_cmp
 {
    bool operator()(const Decoder* a, const Decoder* b)
    {

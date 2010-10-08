@@ -40,7 +40,7 @@
 namespace Dyninst {
 namespace ProcControlAPI {
 
-class Handler 
+class PROCCONTROL_EXPORT Handler 
 {
  protected:
    std::string name;

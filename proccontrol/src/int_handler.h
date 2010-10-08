@@ -36,6 +36,8 @@
 #if !defined(INT_HANDLER_H_)
 #define INT_HANDLER_H_
 
+#include "proccontrol/src/response.h"
+
 using namespace std;
 using namespace Dyninst;
 using namespace ProcControlAPI;
