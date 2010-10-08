@@ -40,6 +40,8 @@
 #include "proccontrol/h/Event.h"
 #include "proccontrol/h/Handler.h"
 
+#include "common/h/headers.h"
+
 #include <cstring>
 #include <cassert>
 #include <map>
@@ -48,7 +50,6 @@ using namespace Dyninst;
 using namespace ProcControlAPI;
 using namespace std;
 
-const map<int,int> Process::emptyFDs;
 Process::thread_mode_t threadingMode = Process::GeneratorThreading;
 bool int_process::in_callback = false;
 
@@ -66,6 +67,7 @@ bool int_process::create()
    int_thread *initial_thread;
    initial_thread = int_thread::createThread(this, NULL_THR_ID, NULL_LWP, true);
 
+   pthrd_printf("Adding new process to procpool\n");
    ProcPool()->addProcess(this);
    setState(neonatal_intermediate);
 
@@ -3059,7 +3061,7 @@ bool installed_breakpoint::isInstalled() const
 bool installed_breakpoint::writeBreakpoint(int_process *proc, result_response::ptr write_response)
 {
    assert(buffer_size != 0);
-   char bp_insn[BP_BUFFER_SIZE];
+   unsigned char bp_insn[BP_BUFFER_SIZE];
    proc->plat_breakpointBytes(bp_insn);
    return proc->writeMem(bp_insn, addr, buffer_size, write_response);
 }
@@ -3393,14 +3395,16 @@ void mem_state::rmProc(int_process *p, bool &should_clean)
 
 int_notify *int_notify::the_notify = NULL;
 int_notify::int_notify() :
-   pipe_in(-1),
-   pipe_out(-1),
-   pipe_count(0),
-   events_noted(0)
+   events_noted(0),
+   initialized(false)
 {
    the_notify = this;
    up_notify = new EventNotify();
    up_notify->llnotify = this;
+}
+
+int_notify::~int_notify()
+{
 }
 
 int_notify *notify()
@@ -3411,7 +3415,7 @@ int_notify *notify()
    static Mutex init_lock;
    init_lock.lock();
    if (!int_notify::the_notify) {
-      int_notify::the_notify = new int_notify();
+      int_notify::the_notify = int_notify::plat_createNotify();
    }
    init_lock.unlock();
    return int_notify::the_notify;
@@ -3421,7 +3425,10 @@ void int_notify::noteEvent()
 {
    assert(isHandlerThread());
    assert(events_noted == 0);
-   writeToPipe();
+   if (!initialized)
+	   return;
+
+   plat_noteEvent();
    events_noted++;
    pthrd_printf("noteEvent - %d\n", events_noted);
    set<EventNotify::notify_cb_t>::iterator i;
@@ -3436,14 +3443,15 @@ static void notifyNewEvent()
    notify()->noteEvent();
 }
 
-
 void int_notify::clearEvent()
 {
    assert(!isHandlerThread());
+   if (!initialized)
+	   return;
    events_noted--;
    pthrd_printf("clearEvent - %d\n", events_noted);
    assert(events_noted == 0);
-   readFromPipe();
+   plat_clearEvent();
 }
 
 bool int_notify::hasEvents()
@@ -3466,9 +3474,30 @@ void int_notify::removeCB(EventNotify::notify_cb_t cb)
 
 int int_notify::getPipeIn()
 {
-   if (pipe_in == -1)
-      createPipe();
-   return pipe_in;
+   if (!initialized) {
+	  initialized = true;
+      plat_init();
+   }
+   return plat_getPipeIn();
+}
+
+void *int_notify::getHandle()
+{
+	if (!initialized) {
+		initialized = true;
+		plat_init();
+	}
+	return plat_getHandle();
+}
+
+int int_notify::plat_getPipeIn()
+{
+	return -1;
+}
+
+void *int_notify::plat_getHandle()
+{
+	return NULL;
 }
 
 Decoder::Decoder()
@@ -3610,7 +3639,9 @@ RegisterPool::const_iterator RegisterPool::const_iterator::operator++(int)
 
 int_registerPool::int_registerPool() :
    full(false),
-   thread(NULL)
+   thread(NULL),
+   reg_buffer(NULL),
+   reg_buffer_size(0)
 {
 }
 
@@ -3619,10 +3650,21 @@ int_registerPool::int_registerPool(const int_registerPool &c) :
    full(c.full),
    thread(c.thread)
 {
+	if (c.reg_buffer) {
+		reg_buffer = malloc(c.reg_buffer_size);
+		memcpy(reg_buffer, c.reg_buffer,  c.reg_buffer_size);
+		reg_buffer_size = c.reg_buffer_size;
+	}
+	else {
+		reg_buffer = NULL;
+		reg_buffer_size = 0;
+	}
 }
 
 int_registerPool::~int_registerPool()
 {
+	if (reg_buffer)
+		free(reg_buffer);
 }
 
 Library::Library()
@@ -3838,7 +3880,7 @@ bool Process::setThreadingMode(thread_mode_t tm)
 
 Process::ptr Process::createProcess(std::string executable,
                                     const std::vector<std::string> &argv,
-                                    const std::map<int,int> &fds)
+                                    const std::map<int,int> *fds)
 {
    MTLock lock_this_func(MTLock::allow_init, MTLock::deliver_callbacks);
 
@@ -3850,7 +3892,9 @@ Process::ptr Process::createProcess(std::string executable,
    }
 
    Process::ptr newproc(new Process());
-   int_process *llproc = int_process::createProcess(executable, argv, fds);
+   const std::map<int, int> emptyFDs;
+
+   int_process *llproc = int_process::createProcess(executable, argv, fds ? *fds : emptyFDs);
    llproc->initializeProcess(newproc);
    
    bool result = llproc->create();

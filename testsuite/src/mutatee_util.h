@@ -51,6 +51,7 @@ extern "C" {
 typedef CRITICAL_SECTION testlock_t;
 typedef struct  {
     int threadid;
+	int thread_index;
     HANDLE hndl;
 } thread_t;
 
@@ -220,6 +221,16 @@ extern int verifyScalarValue(const char *name, int a, int value,
 #define P_sleep(sec) Sleep(1000*(sec))
 #else
 #define P_sleep(sec) sleep(sec)
+#endif
+#endif
+
+#if defined(os_windows_test)
+#ifdef __cplusplus
+extern "C" {
+#endif
+__declspec(dllimport) int getpid(void);
+#ifdef __cplusplus
+}
 #endif
 #endif
 

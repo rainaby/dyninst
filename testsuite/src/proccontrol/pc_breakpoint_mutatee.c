@@ -63,7 +63,6 @@ void bp3(int tid)
 static int threadFunc(int myid, void *data)
 {
   unsigned i;
-
   assert(((num_threads == 0) || (myid >= 0 && myid < num_threads)) && !data);
 
   testLock(&init_lock);

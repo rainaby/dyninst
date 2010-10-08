@@ -43,7 +43,7 @@ class x86_process : virtual public int_process
   virtual ~x86_process();
 
   virtual unsigned plat_breakpointSize();
-  virtual void plat_breakpointBytes(char *buffer);
+  virtual void plat_breakpointBytes(unsigned char *buffer);
 };
 
 #endif

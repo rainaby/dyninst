@@ -1057,13 +1057,9 @@ void startAllTests(std::vector<RunGroup *> &groups,
 
 void DebugPause() {
    getOutput()->log(STDERR, "Waiting for attach by debugger\n");
-#if defined(os_windows_test)
-   DebugBreak();
-#else
    static volatile int set_me = 0;
    while (!set_me)
      P_sleep(1);
-#endif
 }
 
 // Find the paradyn scripts directory.  It can be specified in the environment

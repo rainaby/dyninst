@@ -38,6 +38,10 @@
 #endif
 #endif
 
+#if defined(os_windows)
+#include <process.h>
+#endif
+
 #include "mailbox.h"
 #include "BPatch_eventLock.h"
 #include "util.h"

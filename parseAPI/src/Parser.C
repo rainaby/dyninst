@@ -31,6 +31,9 @@
 
 #include <vector>
 #include <limits>
+#include <utility>
+
+#include <stdlib.h>
 
 #include "dyntypes.h"
 
