@@ -47,14 +47,29 @@
 #include "common/h/freebsdKludges.h"
 #endif
 
+int_notify *int_notify::plat_createNotify()
+{
+	return static_cast<int_notify *>(new pipe_notify());
+}
 
-void int_notify::writeToPipe()
+pipe_notify::pipe_notify() :
+	pipe_in(0),
+	pipe_out(0),
+	pipe_count(0)
+{
+}
+
+pipe_notify::~pipe_notify()
+{
+}
+
+void pipe_notify::plat_noteEvent()
 {
    if (pipe_out == -1) 
       return;
-
+   
    char c = 'e';
-   ssize_t result = write(pipe_out, &c, 1);
+   int result = (int) write(pipe_out, &c, 1);
    if (result == -1) {
       int error = errno;
       setLastError(err_internal, "Could not write to notification pipe\n");
@@ -64,16 +79,16 @@ void int_notify::writeToPipe()
    pthrd_printf("Wrote to notification pipe %d\n", pipe_out);
 }
 
-void int_notify::readFromPipe()
+void pipe_notify::plat_clearEvent()
 {
    if (pipe_out == -1)
       return;
 
    char c;
-   ssize_t result;
+   int result;
    int error;
    do {
-      result = read(pipe_in, &c, 1);
+      result = (int) read(pipe_in, &c, 1);
       error = errno;
    } while (result == -1 && error == EINTR);
    if (result == -1) {
@@ -89,13 +104,13 @@ void int_notify::readFromPipe()
    pthrd_printf("Cleared notification pipe %d\n", pipe_in);
 }
 
-bool int_notify::createPipe()
+bool pipe_notify::plat_init()
 {
    if (pipe_in != -1 || pipe_out != -1)
       return true;
 
    int fds[2];
-   int result = pipe(fds);
+   int result = _pipe(fds);
    if (result == -1) {
       int error = errno;
       setLastError(err_internal, "Error creating notification pipe\n");
@@ -118,6 +133,11 @@ bool int_notify::createPipe()
 
    pthrd_printf("Created notification pipe: in = %d, out = %d\n", pipe_in, pipe_out);
    return true;
+}
+
+int pipe_notify::plat_getPipeIn()
+{
+	return pipe_in;
 }
 
 unix_process::unix_process(Dyninst::PID p, std::string e, std::vector<std::string> a, std::map<int,int> f) :

@@ -31,6 +31,9 @@
 
 #include <vector>
 #include <limits>
+#include <utility>
+
+#include <stdlib.h>
 
 #include "dyntypes.h"
 
@@ -1056,7 +1059,7 @@ Parser::add_edge(
     Block * split = NULL;
     Block * ret = NULL;
     Edge * newedge = NULL;
-    pair<Block *, Edge *> retpair(NULL,NULL);
+    pair<Block *, Edge *> retpair((Block *) NULL, (Edge *) NULL); //Casts work around a VS2010 bug/feature
 
     if(!is_code(owner,dst)) {
         parsing_printf("[%s] target address %lx rejected by isCode()\n",dst);
@@ -1167,7 +1170,7 @@ Parser::bind_call(ParseFrame & frame, Address target, Block * cur, Edge * exist)
     if(!tfunc) {
         parsing_printf("[%s:%d] can't bind call to %lx\n",
             FILE__,__LINE__,target);
-        return pair<Function*,Edge*>(NULL,exist);
+        return pair<Function*,Edge*>((Function *) NULL,exist); //Cast works around VS2010 bug/feature
     }
 
     // add an edge
@@ -1176,7 +1179,7 @@ Parser::bind_call(ParseFrame & frame, Address target, Block * cur, Edge * exist)
     if(!tblock) {
         parsing_printf("[%s:%d] can't bind call to %lx\n",
             FILE__,__LINE__,target);
-        return pair<Function*,Edge*>(NULL,exist);
+        return pair<Function*,Edge*>((Function *) NULL,exist); //Cast works around VS2010 bug/feature
     }
 
     return pair<Function*,Edge*>(tfunc,ret.second);

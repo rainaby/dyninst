@@ -57,4 +57,20 @@ class unix_process : virtual public int_process
    virtual Dyninst::Address plat_mallocExecMemory(Dyninst::Address, unsigned size);
 };
 
+class pipe_notify {
+ protected:
+   int pipe_in;
+   int pipe_out;
+   int pipe_count;
+
+   virtual void plat_noteEvent();
+   virtual void plat_clearEvent();
+   virtual bool plat_init();
+ public:
+   pipe_notify();
+   virtual ~pipe_notify();
+   
+   virtual int plat_getPipeIn();
+};
+
 #endif

@@ -44,7 +44,7 @@ using namespace ProcControlAPI;
 
 #define NUM_PARALLEL_PROCS 8
 
-class ProcControlComponent : public ComponentTester
+class COMPLIB_DLL_EXPORT ProcControlComponent : public ComponentTester
 {
 private:
    bool setupServerSocket();

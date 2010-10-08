@@ -29,6 +29,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#include "dyntypes.h"
+
 #if !defined(PCERRORS_H_)
 #define PCERRORS_H_
 
@@ -62,7 +64,7 @@ namespace ProcControlAPI {
 typedef unsigned err_t;
   
 const err_t err_badparam       = 0x10000;
-const err_t err_procread       = 0x10001;
+const err_t err_memaccess      = 0x10001;
 const err_t err_internal       = 0x10002;
 const err_t err_prem           = 0x10003;
 const err_t err_noproc         = 0x10004;
@@ -77,14 +79,14 @@ const err_t err_notrunning     = 0x10012;
 const err_t err_noevents       = 0x10013;
 const err_t err_incallback     = 0x10014;
 
-err_t getLastError();
-void clearLastError();
-const char *getLastErrorMsg();
-void setLastError(err_t err, const char *msg = NULL);
-void setDebugChannel(FILE *f);
-void setDebug(bool enable);
+PROCCONTROL_EXPORT err_t getLastError();
+PROCCONTROL_EXPORT void clearLastError();
+PROCCONTROL_EXPORT const char *getLastErrorMsg();
+PROCCONTROL_EXPORT void setLastError(err_t err, const char *msg = NULL);
+PROCCONTROL_EXPORT void setDebugChannel(FILE *f);
+PROCCONTROL_EXPORT void setDebug(bool enable);
 
-FILE *getDebugChannel();
+PROCCONTROL_EXPORT FILE *getDebugChannel();
 
 }
 }

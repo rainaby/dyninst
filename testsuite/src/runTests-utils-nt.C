@@ -205,8 +205,11 @@ char *setResumeEnv()
    {
       tmp << "C:\\";
    }
-
+#if !defined(os_windows_test)
    tmp << "test_driver.resumelog." << getpid();
+#else
+   tmp << "test_driver.resumelog";
+#endif
 
    char *r_tmp = strdup(tmp.str().c_str());
    putenv(r_tmp);
