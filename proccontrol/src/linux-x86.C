@@ -34,6 +34,7 @@
 // This header is why this code is in a separate file
 #include <asm/ldt.h>
 #include <cerrno>
+#include <string.h>
 
 bool linux_thread::getSegmentBase(Dyninst::MachRegister reg, Dyninst::MachRegisterVal &val)
 {
