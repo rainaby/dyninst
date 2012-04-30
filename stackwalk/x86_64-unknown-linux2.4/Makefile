@@ -19,10 +19,18 @@ SRCS = 	../src/linux-swk.C \
 	../src/symtab-swk.C \
 	../src/dbginfo-stepper.C \
 	../src/x86-wanderer.C \
-	../src/analysis_stepper.C \
 	../src/linuxbsd-swk.C \
 	../src/linux-x86-swk.C \
 	../../common/src/Elf_X.C
+
+#USE_PARSE_API = true
+
+ifdef USE_PARSE_API
+	SRCS += ../src/analysis_stepper.C \
+		../src/callchecker-IAPI.C
+else
+	SRCS += ../src/callchecker.C
+endif
 
 # Include the module-specific Makefile, which defines everything about
 # the module that is common across architectures.
@@ -50,7 +58,15 @@ ifdef LIBDWARF_LIB
 LDFLAGS += -L$(LIBDWARF_LIB) -ldwarf
 endif
 
-MYFLAGS 	+= -I../../parseAPI/h -I../../symtabAPI/h -I../../symEval/h
+ifdef USE_PARSE_API
+	MYFLAGS += -I../../parseAPI/h -I../../dataflowAPI/h
+	LDFLAGS += -L../../parseAPI/$(PLATFORM) -lparseAPI	
+endif
+
+MYFLAGS += -I../../symtabAPI/h
+LDFLAGS += -L../../symtabAPI/$(PLATFORM) -lsymtabAPI
+
+#MYFLAGS 	+= -I../../parseAPI/h -I../../symtabAPI/h -I../../symEval/h
 CFLAGS  += -fno-omit-frame-pointer -Dcap_sw_catchfaults $(MYFLAGS)
 CXXFLAGS  += -fno-omit-frame-pointer -Dcap_sw_catchfaults $(MYFLAGS)
 AS		= as

@@ -129,10 +129,12 @@ public:
   virtual const char *getName() const;
 };
 
+class CallChecker;
 class WandererHelper
 {
  private:
    ProcessState *proc;
+   CallChecker * callchecker;
  public:
    typedef enum {
       unknown_s = 0,
