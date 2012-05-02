@@ -42,9 +42,10 @@
 #include <string>
 #include <list>
 #include "util.h"
-#include "dynutil/h/dyn_regs.h"
+//#include "dynutil/h/dyn_regs.h"
+#include "dyn_regs.h"
 
-#include "common/h/IntervalTree.h"
+//#include "common/h/IntervalTree.h"
 
 // for blockSet...
 //#include "dyninstAPI/src/image-func.h"
@@ -140,6 +141,15 @@ class StackAnalysis {
             if (rhs.isTop()) return *this;
 
             return Height(height_ + rhs.height_);
+        }
+
+        const Height operator-(const Height &rhs) const {
+            if (isBottom()) return Height((-1)*rhs.height_);
+            if (rhs.isBottom()) return bottom;
+            if (isTop()) return bottom;
+            if (rhs.isTop()) return *this;
+
+            return Height(height_ - rhs.height_);
         }
 
 	const Height operator+(const unsigned long &rhs) const {
@@ -367,6 +377,7 @@ class StackAnalysis {
     void handlePushPop(InstructionPtr insn, int sign, TransferFuncs &xferFuncs);
     void handleReturn(InstructionPtr insn, TransferFuncs &xferFuncs);
     void handleAddSub(InstructionPtr insn, int sign, TransferFuncs &xferFuncs);
+    void handleLEA(InstructionPtr insn, TransferFuncs &xferFuncs);
     void handleLeave(TransferFuncs &xferFuncs);
     void handlePushPopFlags(int sign, TransferFuncs &xferFuncs);
 	void handlePushPopRegs(int sign, TransferFuncs &xferFuncs);

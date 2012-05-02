@@ -238,8 +238,13 @@ void StackAnalysis::summarize() {
 	Function::blocklist & bs = func->blocks();
 	Function::blocklist::iterator bit = bs.begin();
 	for( ; bit != bs.end(); ++bit) {
-		Block *block = *bit;
+                Block *block = *bit;
+                stackanalysis_printf("\t\t summarizing block [%lx-%lx]\n",
+                        block->start(), block->lastInsnAddr());
+                // BlockState blockInputs --> map<Block, RegisterState>
 		RegisterState input = blockInputs[block];
+
+                stackanalysis_printf("\t\t\t input: %s\n", format(input).c_str());
 
 		for (std::map<Offset, TransferFuncs>::iterator iter = insnEffects[block].begin(); 
 			iter != insnEffects[block].end(); ++iter) {
@@ -256,7 +261,12 @@ void StackAnalysis::summarize() {
 			}
 		}
 		(*intervals_)[block][block->end()] = input;
-		assert(input == blockOutputs[block]);
+		// Assert that blockInputs[block] + transferFuncs = blockOutputs[block]
+                if (input != blockOutputs[block]) {
+                    stackanalysis_printf("\t\t\t modified input: %s\n", format(input).c_str());
+                    stackanalysis_printf("\t\t\t input: %s\n", format(blockOutputs[block]).c_str());
+                }
+                assert(input == blockOutputs[block]);
 	}
 }
 
@@ -307,6 +317,9 @@ void StackAnalysis::computeInsnEffects(ParseAPI::Block *block,
        case e_ret_far:
           handleReturn(insn, xferFuncs);
           break;
+       case e_lea:
+	 handleLEA(insn, xferFuncs);
+	 break;
        case e_sub:
           sign = -1;
        case e_add:
@@ -533,6 +546,14 @@ void StackAnalysis::handleAddSub(Instruction::Ptr insn, int sign, TransferFuncs 
    if(!insn->isRead(theStackPtr)) {
       return handleDefault(insn, xferFuncs);
    }
+
+   // add reg, mem is ignored
+   // add mem, reg bottoms reg
+   if (insn->writesMemory()) return;
+   if (insn->readsMemory()) {
+      handleDefault(insn, xferFuncs);
+      return;
+   }
    
    // Add/subtract are op0 += (or -=) op1
    Operand arg = insn->getOperand(1);
@@ -541,14 +562,82 @@ void StackAnalysis::handleAddSub(Instruction::Ptr insn, int sign, TransferFuncs 
 	   // FIXME: IAPI is treating the operand as unsigned, and thus a <long> conversion
 	   // comes out as a small positive number if the offset is negative. 
 	   // This should fix it...
-      long delta = sign * (long) res.convert<unsigned char>();
-      stackanalysis_printf("\t\t\t Stack height changed by evalled add/sub: %lx\n", delta);
-      xferFuncs.push_back(TransferFunc::deltaFunc(sp(), delta));   
+     long delta = 0;
+     // Size is in bytes... 
+     switch(res.size()) {
+     case 1:
+       delta = sign * (long) res.convert<unsigned char>();
+       break;
+     case 2:
+       delta = sign * (long) res.convert<unsigned short>();
+       break;
+     case 4:
+       delta = sign * (long) res.convert<unsigned int>();
+       break;
+     default:
+       assert(0);
+     }
+#if 0
+     delta = sign * (long) res.convert<unsigned char>();
+#endif
+     stackanalysis_printf("\t\t\t Stack height changed by evalled add/sub: %lx\n", delta);
+     xferFuncs.push_back(TransferFunc::deltaFunc(sp(), delta));   
    }
    else {
-      stackanalysis_printf("\t\t\t Stack height changed by unevalled add/sub: bottom\n");
-      xferFuncs.push_back(TransferFunc::bottomFunc(sp()));   
-   }      
+     handleDefault(insn, xferFuncs);
+   }
+
+   return;
+}
+
+void StackAnalysis::handleLEA(Instruction::Ptr insn, TransferFuncs &xferFuncs) {
+   // LEA has a pattern of:
+   // op0: target register
+   // op1: add(source, <const>)
+   // 
+   // Since we don't know what the value in source is, we can't do this a priori. Instead,
+   // TRANSFER FUNCTION!
+   
+   stackanalysis_printf("\t\t\t handleLEA, insn = %s\n", insn->format().c_str());
+
+   std::set<RegisterAST::Ptr> readSet;
+   std::set<RegisterAST::Ptr> writtenSet;
+   insn->getOperand(0).getWriteSet(writtenSet); assert(writtenSet.size() == 1);
+   insn->getOperand(1).getReadSet(readSet); //assert(readSet.size() == 1);
+
+   // conservative...
+   if (readSet.size() > 1) {
+    return handleDefault(insn, xferFuncs); 
+   }
+
+   TransferFunc lea = TransferFunc::aliasFunc((*(readSet.begin()))->getID(), (*(writtenSet.begin()))->getID());
+
+   // LEA also performs computation, so we need to determine and set the delta parameter.
+   // Let's do that the icky way for now
+   insn->getOperand(1).getValue()->bind((*(readSet.begin())).get(), Result(u32, 0));
+   Result res = insn->getOperand(1).getValue()->eval();
+   if (!res.defined) {
+     handleDefault(insn, xferFuncs);
+     return;
+   }
+   long delta = 0;
+   // Size is in bytes... 
+   switch(res.size()) {
+   case 1:
+     delta = (long) res.convert<char>();
+     break;
+   case 2:
+     delta =  (long) res.convert<short>();
+     break;
+   case 4:
+     delta =  (long) res.convert<int>();
+     break;
+   default:
+     assert(0);
+   }
+   lea.delta = delta;
+   xferFuncs.push_back(lea);
+
    return;
 }
 
@@ -921,6 +1010,12 @@ void StackAnalysis::TransferFunc::accumulate(std::map<MachRegister, TransferFunc
          assert(!alias.isAbs());
          input = alias;
 		 assert(input.target.isValid());
+                   
+                 // if the input was also a delta, apply this also 
+                 if (isDelta()) {
+                    input.delta += delta;
+                 }
+      
          return;
       }
 
@@ -935,6 +1030,12 @@ void StackAnalysis::TransferFunc::accumulate(std::map<MachRegister, TransferFunc
 	  else {
 		  input.delta = Height::top;
 	  }
+
+          // if the input was also a delta, apply this also 
+          if (isDelta()) {
+            input.delta += delta;
+          }
+
 	  return;
    }
    if (isDelta()) {

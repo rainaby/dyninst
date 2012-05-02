@@ -382,6 +382,8 @@ Parser::parse_edges( vector< ParseWorkElem * > & work_elems )
 
 }
 
+unsigned num_delayedFrames = 0;
+
 void
 Parser::parse_frames(vector<ParseFrame *> & work, bool recursive)
 {
@@ -389,6 +391,7 @@ Parser::parse_frames(vector<ParseFrame *> & work, bool recursive)
 
     /* Recursive traversal parsing */ 
     while(!work.empty()) {
+        
         pf = work.back();
         work.pop_back();
 
@@ -433,6 +436,7 @@ Parser::parse_frames(vector<ParseFrame *> & work, bool recursive)
             case ParseFrame::PARSED:
                 parsing_printf("[%s] frame %lx complete, return status: %d\n",
                     FILE__,pf->func->addr(),pf->func->_rs);
+
                 if (unlikely( _obj.defensiveMode() && 
                               TAMPER_NONE != pf->func->tampersStack() &&
                               TAMPER_NONZERO != pf->func->tampersStack() ))
@@ -497,15 +501,63 @@ Parser::parse_frames(vector<ParseFrame *> & work, bool recursive)
                         }
                     }
                 }
+                
+                /* add waiting frames back onto the worklist */
+                undelayFrame(pf->func, work);
+
                 pf->cleanup();
                 break;
             case ParseFrame::FRAME_ERROR:
                 parsing_printf("[%s] frame %lx error at %lx\n",
                     FILE__,pf->func->addr(),pf->curAddr);
                 break;
+            case ParseFrame::FRAME_DELAYED:
+                parsing_printf("[%s] frame %lx delayed at %lx\n",
+                        FILE__,
+                        pf->func->addr(),
+                       pf->curAddr);
+                /* if the return status of this function has been updated, add
+                 * waiting frames back onto the work list */
+                undelayFrame(pf->func, work);
+                break;
             default:
                 assert(0 && "invalid parse frame status");
         }
+    }
+
+    // Use fixed-point algorithm to ensure we parse frames whose parsing had to
+    // be delayed
+    int fixed = 0;
+    if (delayedFrames.size() == num_delayedFrames) {
+        fixed = 1;
+        parsing_printf("[%s] Fixed point reached.\n", __FILE__);    
+    } else {
+        num_delayedFrames = delayedFrames.size();
+    }
+
+    if (delayedFrames.size() > 0) {
+        for (map<Function *, vector<ParseFrame *> >::iterator iter = delayedFrames.begin(); 
+                iter != delayedFrames.end(); 
+                ++iter) {
+            if (fixed) {
+                // If we've reached a fixed point and we don't know the return
+                // status of a function, assume NORETURN
+                Function * f = iter->first;
+                if (f->_rs == UNSET) f->set_retstatus(NORETURN);
+            }
+
+            // Add delayed frames back to work queue
+            std::vector<ParseFrame *> vec = iter->second;
+            for (std::vector<ParseFrame *>::iterator vIter = vec.begin(); 
+                    vIter != vec.end(); 
+                    ++vIter) {
+                work.push_back(*vIter);
+            }
+        }
+
+        // Recurse through parse_frames with new information        
+        delayedFrames.clear();
+        parse_frames(work, true);
     }
 
     for(unsigned i=0;i<frames.size();++i) {
@@ -848,8 +900,8 @@ Parser::parse_frame(ParseFrame & frame, bool recursive) {
     
             continue;
         } else if(work->order() == ParseWorkElem::call_fallthrough) {
-
-			// check associated call edge's return status
+            
+            // check associated call edge's return status
             Edge * ce = bundle_call_edge(work->bundle());
             if(!ce) {
                 // odd; no call edge in this bundle
@@ -862,6 +914,40 @@ Parser::parse_frame(ParseFrame & frame, bool recursive) {
                 bool is_plt = false;
                 bool is_nonret = false;
 
+                // check if target function has been parsed
+                if (!ct) {
+                    parsing_printf("[%s] Parsing FT edge %lx, could not locate call edge target function\n", FILE__);
+                } else { 
+                    if (ct->_rs == UNSET) {
+                        parsing_printf("[%s] Parsing FT edge %lx, parsing callee (@ %lx) not yet finished\n", 
+                                FILE__,
+                                work->edge()->src()->lastInsnAddr(),
+                                ct->addr());
+                        
+                        // Delay parsing until we've finished the corresponding call edge
+                        parsing_printf("[%s] delaying frame \"%s\", waiting for \"%s\"\n", 
+                               __FILE__,
+                              frame.func->name().c_str(),
+                              ct->name().c_str());
+
+                        
+                        // need to re-visit this edge
+                        frame.set_status(ParseFrame::FRAME_DELAYED);
+                        frame.pushWork(work);
+                      
+                        // Add frame to list of delayed frames (waiting on function ct) 
+                        map<Function *, vector<ParseFrame *> >::iterator iter = delayedFrames.find(ct);
+                        if (iter == delayedFrames.end()) {
+                            std::vector<ParseFrame *> vec;
+                            vec.push_back(&frame);     
+                            delayedFrames[ct] = vec;
+                        } else {
+                            delayedFrames[ct].push_back(&frame);
+                        }
+                        return;
+                    } 
+                }
+                
                 is_plt = HASHDEF(plt_entries,target);
    
                 // CodeSource-defined tests 
@@ -1786,4 +1872,27 @@ void Parser::invalidateContainingFuncs(Function *owner, Block *b)
                        "func at %lx\n",
                        FILE__,__LINE__,b->start(),b->end(),po->addr());
     }   
+}
+
+/* Add ParseFrames waiting on func back to the work queue */
+void Parser::undelayFrame(Function * func, vector<ParseFrame *> & work)
+{
+    // If we do not know the function's return status, don't put its waiters back on the worklist
+    if (func->_rs == UNSET) { return; }
+
+    // When a function's return status is set, all waiting frames back into the worklist
+    map<Function *, vector<ParseFrame *> >::iterator iter = delayedFrames.find(func);
+    if (iter == delayedFrames.end()) {
+        // There were no frames waiting, ignore
+    } else {
+        // Add each waiting frame back to the worklist
+        vector<ParseFrame *> vec = iter->second;
+        for (vector<ParseFrame *>::iterator fIter = vec.begin(); 
+                fIter != vec.end();
+                ++fIter) {
+            work.push_back(*fIter);
+        }
+        // remove func from delayedFrames map
+        delayedFrames.erase(func);
+    }
 }
