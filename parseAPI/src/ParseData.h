@@ -60,8 +60,7 @@ class ParseFrame {
         CALL_BLOCKED,
         PARSED,
         FRAME_ERROR,
-        BAD_LOOKUP,  // error for lookups that return Status
-        FRAME_DELAYED // discovered cyclic dependency, delaying parse
+        BAD_LOOKUP  // error for lookups that return Status
     };
 
     /* worklist details */

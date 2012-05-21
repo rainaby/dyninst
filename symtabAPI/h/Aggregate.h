@@ -43,12 +43,6 @@
 #include <iostream>
 #include "Annotatable.h"
 
-namespace Dyninst{
-    namespace SymtabAPI{
-        class Aggregate;
-    };
-};
-
 SYMTAB_EXPORT std::ostream &operator<<(std::ostream &os, const Dyninst::SymtabAPI::Aggregate &);
 
 namespace Dyninst{
@@ -58,7 +52,6 @@ class Symbol;
 class Module;
 class Symtab; 
 class Region; 
-class Type;
 class Aggregate; 
 struct SymbolCompareByAddr;
 

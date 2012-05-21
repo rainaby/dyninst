@@ -51,15 +51,9 @@ class BPatch_edge;
 class BPatch_function;
 class BPatch_flowGraph;
 
-namespace Dyninst {
-    namespace ParseAPI {
-        class Block;
-        Block * convert(const BPatch_basicBlock *); 
-    };
-};
-
 /* Currently all this bitarray stuff is just for power, 
    but could be extended as we do liveness stuff for other platforms */
+
 
 /** class for machine code basic blocks. We assume the user can not 
   * create basic blocks using its constructor. It is not safe. 
@@ -90,7 +84,6 @@ class BPATCH_DLL_EXPORT BPatch_basicBlock : public BPatch_eventLock {
 	friend class func_instance;
         friend class BPatch_instruction;
 	friend std::ostream& operator<<(std::ostream&,BPatch_basicBlock&);
-        friend Dyninst::ParseAPI::Block * Dyninst::ParseAPI::convert(const BPatch_basicBlock *);
 
  private:
    /** the internal basic block structure **/
