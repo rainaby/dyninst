@@ -69,7 +69,7 @@ using namespace std;
 #include <stdio.h>
 #include <algorithm>
 
-#if defined(USES_DWARF_DEBUG)
+#if defined(cap_dwarf)
 #include "dwarf.h"
 #include "libdwarf.h"
 #endif
@@ -2367,7 +2367,7 @@ void Object::parse_dynamicSymbols (Elf_X_Shdr *&
 #endif
 }
 
-#if defined(USES_DWARF_DEBUG)
+#if defined(cap_dwarf)
 
 string Object::find_symbol(string name)
 {
@@ -2402,7 +2402,7 @@ string Object::find_symbol(string name)
  *
  ********************************************************/
 
-#if defined(USES_DWARF_DEBUG)
+#if defined(cap_dwarf)
 
 void pd_dwarf_handler(Dwarf_Error error, Dwarf_Ptr /*userData*/)
 {
@@ -2971,7 +2971,7 @@ bool Object::fix_global_symbol_modules_static_dwarf()
 bool Object::fix_global_symbol_modules_static_dwarf()
 { return false; }
 
-#endif // USES_DWARF_DEBUG
+#endif // cap_dwarf
 
 /********************************************************
  *
