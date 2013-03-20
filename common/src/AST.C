@@ -37,13 +37,14 @@ using namespace Dyninst;
 AST::Ptr AST::substitute(AST::Ptr in, AST::Ptr a, AST::Ptr b) {
   if (!in) return in;
 
-  if (*in == *a)
+  if (in->equals(a) || in->equals(b))
     return b;
 
   Children newKids;
   for (unsigned i = 0; i < in->numChildren(); ++i) {
     in->setChild(i, substitute(in->child(i), a, b));
   }
+
   return in;
 }
 

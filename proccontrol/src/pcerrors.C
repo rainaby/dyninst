@@ -199,8 +199,7 @@ public:
    init_debug_channel() 
    {
       pctrl_err_out = stderr;
-      char *debug = getenv("DYNINST_DEBUG_PROCCONTROL");
-      if (debug) {
+      if (getenv("DYNINST_DEBUG_PROCCONTROL")) {
          setDebug(true);
       }
    }

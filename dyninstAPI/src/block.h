@@ -138,7 +138,8 @@ template <class OutputIterator>
 void block_instance::getFuncs(OutputIterator result) {
    std::vector<ParseAPI::Function *> pFuncs;
    llb()->getFuncs(pFuncs);
-   for (unsigned i = 0; i < pFuncs.size(); ++i) {
+   unsigned sz = pFuncs.size();
+   for (unsigned i = 0; i < sz; ++i) {
       func_instance *func = findFunction(pFuncs[i]);
       *result = func;
       ++result;

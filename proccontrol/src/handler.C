@@ -410,7 +410,7 @@ bool HandlerPool::handleEvent(Event::ptr orig_ev)
     * Now it's finally time to run the handlers.
     **/
    bool handled_something = false;
-   bool had_error = true;
+   bool had_error = false;
 
    ev_hndler_set_t::iterator i;
 

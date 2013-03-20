@@ -79,7 +79,7 @@ class parse_block : public codeRange, public ParseAPI::Block  {
     bool isExitBlock();
     bool isCallBlock();
     bool isEntryBlock(parse_func * f) const;
-    parse_func *getEntryFunc() const;  // func starting with this bock
+    parse_func *getEntryFunc() const;  // func starting with this block
 
     bool unresolvedCF() const { return unresolvedCF_; }
     bool abruptEnd() const { return abruptEnd_; }

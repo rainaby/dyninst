@@ -193,7 +193,7 @@ bool HybridAnalysis::init()
     }
 #endif
 
-    //mal_printf("   pre-inst  "); proc()->printKTimer();
+    mal_printf("Init pre-inst\n"); // proc()->printKTimer();
 
     // instrument a.out module & protect analyzed code
     instrumentedFuncs = new map<BPatch_function*,map<BPatch_point*,BPatchSnippetHandle*>*>();
@@ -225,7 +225,7 @@ bool HybridAnalysis::init()
             proc()->finalizeInsertionSet(false);
         }
     }
-    mal_printf("   post-inst ");
+    mal_printf("Init post-inst\n");
     //proc()->printKTimer();
 
     proc()->getImage()->clearNewCodeRegions();
