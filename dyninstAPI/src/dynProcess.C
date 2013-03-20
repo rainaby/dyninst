@@ -275,6 +275,9 @@ PCProcess *PCProcess::setupExecedProcess(PCProcess *oldProc, std::string execPat
 }
 
 PCProcess::~PCProcess() {
+    if (deadCode_) delete deadCode_;
+	deadCode_ = NULL;
+
     if( tracedSyscalls_ ) delete tracedSyscalls_;
     tracedSyscalls_ = NULL;
 
@@ -2233,7 +2236,7 @@ bool PCProcess::postIRPC_internal(void *buf,
 
 
 BPatch_hybridMode PCProcess::getHybridMode() {
-    return BPatch_normalMode;
+    return analysisMode_;
 }
 
 bool PCProcess::isExploratoryModeOn() const {
@@ -2369,24 +2372,25 @@ void PCProcess::updateCodeBytes
     assert(objRanges.size() <= 1); //o/w analysis code may not be prepared for other cases
 }
 
-#if 0
 static void otherFuncBlocks(func_instance *func, 
                             const set<block_instance*> &blks, 
-                            set<block_instance*> &otherBlks)
-{
-    const func_instance::BlockSet &allBlocks = 
-        func->blocks();
-    for (func_instance::BlockSet::const_iterator bit =
-         allBlocks.begin();
-         bit != allBlocks.end(); 
-         bit++) 
-    {
+                            set<block_instance*> &otherBlks) {
+	func_instance::BlockSet allBlocks;
+	const PatchFunction::Blockset &patchBlocks_ = func->blocks();
+	const PatchFunction::Blockset::const_iterator e_it = patchBlocks_.end();
+	for (PatchFunction::Blockset::const_iterator it = patchBlocks_.begin();
+	     it != e_it; ++it) {
+	    allBlocks.insert(SCAST_BI(*it));
+	}
+
+	const func_instance::BlockSet::const_iterator e_bit = allBlocks.end();
+	for (func_instance::BlockSet::const_iterator bit = allBlocks.begin();
+		 bit != e_bit; bit++) {
         if (blks.end() == blks.find((*bit))) {
             otherBlks.insert((*bit));
         }
     }
 }
-#endif
 
 /* Summary
  * Given a list of overwritten blocks, find blocks that are unreachable,
@@ -2426,98 +2430,93 @@ static void otherFuncBlocks(func_instance *func,
  *          and were overwritten in their entry blocks
  *          EP(f) in ow(f) AND ex(f) is empty
  */
-bool PCProcess::getDeadCode
-( const std::list<block_instance*> & /*owBlocks*/, // input
-  std::set<block_instance*> & /*delBlocks*/, //output: Del(for all f)
-  std::map<func_instance*,set<block_instance*> > & /*elimMap*/, //output: elimF
-  std::list<func_instance*> & /*deadFuncs*/, //output: DeadF
-  std::map<func_instance*,block_instance*> & /*newFuncEntries*/) //output: newF
-{
-   assert(0 && "TODO");
-   return false;
-#if 0
-    // do a stackwalk to see which functions are currently executing
-    pdvector<pdvector<Frame> >  stacks;
-    pdvector<Address> pcs;
-    if (!walkStacks(stacks)) {
+bool PCProcess::DeadCodeContext::getDeadCode(const std::list<block_instance*> &owBlocks) {
+	// do a stackwalk to see which functions are currently executing
+    pdvector<pdvector<Frame> > stacks;
+    if (!proc_->walkStacks(stacks)) {
         inst_printf("%s[%d]:  walkStacks failed\n", FILE__, __LINE__);
         return false;
     }
+
+	Address origPC = 0;
+    std::vector<func_instance*> dontcare1;
+    baseTramp *dontcare2 = NULL;
+	pdvector<Address> pcs;
     for (unsigned i = 0; i < stacks.size(); ++i) {
         pdvector<Frame> &stack = stacks[i];
-        for (unsigned int j = 0; j < stack.size(); ++j) {
-            Address origPC = 0;
-            vector<func_instance*> dontcare1;
-            baseTramp *dontcare2 = NULL;
-            getAddrInfo(stack[j].getPC(), origPC, dontcare1, dontcare2);
-            pcs.push_back( origPC );
+        for (unsigned j = 0; j < stack.size(); ++j) {
+            proc_->getAddrInfo(stack[j].getPC(), origPC, dontcare1, dontcare2);
+            pcs.push_back(origPC);
         }
     }
 
-    // group blocks by function
-    std::map<func_instance*,set<block_instance*> > deadMap;
-    std::set<func_instance*> deadEntryFuncs;
-    std::set<Address> owBlockAddrs;
-    for (list<block_instance*>::const_iterator bIter=owBlocks.begin();
-         bIter != owBlocks.end(); 
-         bIter++) 
-    {
-       deadMap[(*bIter)->func()].insert(*bIter);
-       owBlockAddrs.insert((*bIter)->start());
-       if ((*bIter)->llb() == (*bIter)->func()->ifunc()->entry()) {
-          deadEntryFuncs.insert((*bIter)->func());
-       }
+	// group blocks by function
+	BlockContext owBlockContext_;
+	std::set<Address> owBlockAddrs_;
+	std::set<func_instance*> deadEntryFuncs_;
+	const std::list<block_instance*>::const_iterator e_owBlkIter = owBlocks.end();
+    for (std::list<block_instance*>::const_iterator owBlkIter = owBlocks.begin();
+         owBlkIter != e_owBlkIter; owBlkIter++) {
+		std::vector<func_instance *> owFuncs;
+		(*owBlkIter)->getFuncs(std::back_inserter(owFuncs));
+		std::vector<func_instance *>::iterator e_owFuncIt = owFuncs.end();
+		for (std::vector<func_instance *>::iterator owFuncIt = owFuncs.begin();
+			 owFuncIt != e_owFuncIt; ++owFuncIt) {
+			owBlockContext_[*owFuncIt].insert(*owBlkIter);
+			owBlockAddrs_.insert((*owBlkIter)->start());
+			if ((*owBlkIter)->llb()->isEntryBlock((*owFuncIt)->ifunc())) {
+				deadEntryFuncs_.insert(*owFuncIt);
+			}
+		}
     }
 
-    // for each modified function, calculate ex, ElimF, NewF, DelF
-    for (map<func_instance*,set<block_instance*> >::iterator fit = deadMap.begin();
-         fit != deadMap.end(); 
-         fit++) 
-    {
+	// for each modified function, calculate ex, ElimF, NewF, DelF
+    const BlockContext::iterator e_fIt = owBlockContext_.end();
+	func_instance* curFunc;
+	block_instance* curEntryBlk;
+    for (BlockContext::iterator fIt = owBlockContext_.begin();
+         fIt != e_fIt; fIt++) {
+		curFunc = fIt->first;
+	    std::set<block_instance*> curBlks(fIt->second);
+		curEntryBlk = curFunc->entryBlock();
 
         // calculate ex(f)
-        set<block_instance*> execBlocks;
+		std::set<block_instance*> execBlocks_;
         for (unsigned pidx=0; pidx < pcs.size(); pidx++) {
             std::set<block_instance *> candidateBlocks;
-            fit->first->findBlocksByAddr(pcs[pidx], candidateBlocks);
+            curFunc->obj()->findBlocksByAddr(pcs[pidx], candidateBlocks);
+			const std::set<block_instance *>::iterator cb_iter_e = candidateBlocks.end();
             for (std::set<block_instance *>::iterator cb_iter = candidateBlocks.begin();
-                cb_iter != candidateBlocks.end(); ++cb_iter) {
-                block_instance *exB = *cb_iter;
-                if (exB && owBlockAddrs.end() == owBlockAddrs.find(
-                                                        exB->start())) 
-                {
-                    execBlocks.insert(exB);
+                cb_iter != cb_iter_e; ++cb_iter) {
+                block_instance *execBlock = *cb_iter;
+                if (execBlock &&
+				    owBlockAddrs_.end() == owBlockAddrs_.find(execBlock->start())) {
+                    execBlocks_.insert(execBlock);
                 }
             }
         }
 
-        // calculate DeadF: EP(f) in ow and EP(f) not in ex
-        if ( 0 == execBlocks.size() ) {
-            set<block_instance*>::iterator eb = fit->second.find(
-                fit->first->entryBlock());
-            if (eb != fit->second.end()) {
-                deadFuncs.push_back(fit->first);
-                continue;// treated specially, don't need elimF, NewF or DelF
-            }
-        } 
+        // calculate DeadF: EP(f) in ow and EP(f) not in execBlocks_
+        if (execBlocks_.empty() &&
+		    curBlks.end() != curBlks.find(curEntryBlk)) {
+            deadFuncs_.push_back(curFunc);
+			continue; // treated specially, don't need elimF, NewF or DelF
+        }
 
         // calculate elimF
-        set<block_instance*> keepF;
-        list<block_instance*> seedBs;
-        seedBs.push_back(fit->first->entryBlock());
-        fit->first->getReachableBlocks(fit->second, seedBs, keepF);
-        otherFuncBlocks(fit->first, keepF, elimMap[fit->first]);
+        std::set<block_instance*> keepF;
+        std::list<block_instance*> seedBs;
+        seedBs.push_back(curEntryBlk);
+        curFunc->getReachableBlocks(curBlks, seedBs, keepF);
+        otherFuncBlocks(curFunc, keepF, deadBlockContext_[curFunc]);
 
         // calculate NewF
-        if (deadEntryFuncs.end() != deadEntryFuncs.find(fit->first)) {
-            for (set<block_instance*>::iterator bit = execBlocks.begin();
-                 bit != execBlocks.end();
-                 bit++) 
-            {
-                if (elimMap[fit->first].end() != 
-                    elimMap[fit->first].find(*bit)) 
-                {
-                    newFuncEntries[fit->first] = *bit;
+        if (deadEntryFuncs_.end() != deadEntryFuncs_.find(curFunc)) {
+            for (set<block_instance*>::iterator bit = execBlocks_.begin();
+                 bit != execBlocks_.end(); bit++) {
+                if (deadBlockContext_[curFunc].end() !=
+                    deadBlockContext_[curFunc].find(*bit)) {
+                    newFuncEntries_[curFunc] = *bit;
                     break; // just need one candidate
                 }
             }
@@ -2525,28 +2524,25 @@ bool PCProcess::getDeadCode
 
         // calculate Del(f)
         seedBs.clear();
-        if (deadEntryFuncs.end() == deadEntryFuncs.find(fit->first)) {
-            seedBs.push_back(fit->first->entryBlock());
+        if (deadEntryFuncs_.end() == deadEntryFuncs_.find(curFunc)) {
+            seedBs.push_back(curEntryBlk);
+        } else if (newFuncEntries_.end() != newFuncEntries_.find(curFunc)) {
+            seedBs.push_back(newFuncEntries_[curFunc]);
         }
-        else if (newFuncEntries.end() != newFuncEntries.find(fit->first)) {
-            seedBs.push_back(newFuncEntries[fit->first]);
-        }
-        for (set<block_instance*>::iterator xit = execBlocks.begin();
-             xit != execBlocks.end();
-             xit++) 
-        {
-            if (elimMap[fit->first].end() != elimMap[fit->first].find(*xit)) {
+
+        const std::set<block_instance*>::iterator e_xit = execBlocks_.end();
+        for (std::set<block_instance*>::iterator xit = execBlocks_.begin();
+             xit != e_xit; xit++) {
+            if (deadBlockContext_[curFunc].end() != deadBlockContext_[curFunc].find(*xit)) {
                 seedBs.push_back(*xit);
             }
         }
         keepF.clear();
-        fit->first->getReachableBlocks(fit->second, seedBs, keepF);
-        otherFuncBlocks(fit->first, keepF, delBlocks);
-        
+        curFunc->getReachableBlocks(curBlks, seedBs, keepF);
+        otherFuncBlocks(curFunc, keepF, deadBlocks_);
     }
 
-    return true;
-#endif
+	return true;
 }
 
 // will flush addresses of all addresses in the specified range, if the

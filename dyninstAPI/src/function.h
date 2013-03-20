@@ -131,7 +131,7 @@ class func_instance : public patchTarget, public Dyninst::PatchAPI::PatchFunctio
   const BlockSet &abruptEnds(); // Blocks where we provisionally stopped 
                                 // parsing because things looked weird.
   block_instance * setNewEntry(block_instance *def, // if no better choice
-                               std::set<block_instance*> &deadBlocks);
+                               const std::set<block_instance*> &deadBlocks);
   // kevin signal-handler information
   bool isSignalHandler() {return handlerFaultAddr_ != 0;}
   Address getHandlerFaultAddr() {return handlerFaultAddr_;}

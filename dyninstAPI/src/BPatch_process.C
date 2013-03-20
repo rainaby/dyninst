@@ -1512,7 +1512,7 @@ void BPatch_process::overwriteAnalysisUpdate
       std::set<BPatch_function *> &monitorFuncs, // output: those that call overwritten or modified funcs
       bool &changedPages, bool &changedCode) //output
 {
-    //1.  get the overwritten blocks and regions
+    // 1. get the overwritten blocks and regions
     std::list<std::pair<Address,Address> > owRegions;
     std::list<block_instance *> owBBIs;
     llproc->getOverwrittenBlocks(owPages, owRegions, owBBIs);
@@ -1525,33 +1525,31 @@ void BPatch_process::overwriteAnalysisUpdate
         return;
     }
 
-    /*2. remove dead code from the analysis */
-
-    // identify the dead code (see getDeadCode for its parameter definitions)
-    std::set<block_instance*> delBlocks; 
-    std::map<func_instance*,set<block_instance*> > elimMap; 
-    std::list<func_instance*> deadFuncs; 
-    std::map<func_instance*,block_instance*> newFuncEntries; 
-    llproc->getDeadCode(owBBIs,delBlocks,elimMap,deadFuncs,newFuncEntries);
+    // 2. remove dead code from the analysis
+    // identify the dead code
+	PCProcess::DeadCodeContext * deadCode = llproc->getDeadCodeContext();
+	deadCode->getDeadCode(owBBIs);
 
     // remove instrumentation from affected funcs
     beginInsertionSet();
-    for(std::map<func_instance*,set<block_instance*> >::iterator fIter = elimMap.begin();
-        fIter != elimMap.end();
-        fIter++)
-    {
-        BPatch_function *bpfunc = findOrCreateBPFunc(fIter->first,NULL);
-        //hybridAnalysis_->removeInstrumentation(bpfunc,false,false);
+	const PCProcess::DeadCodeContext::BlockContext::const_iterator
+		e_bcIt = deadCode->getBlockContext().end();
+	for (PCProcess::DeadCodeContext::BlockContext::const_iterator
+	     bcIt = deadCode->getBlockContext().begin();
+	     bcIt != e_bcIt; bcIt++) {
+        BPatch_function *bpfunc = findOrCreateBPFunc(bcIt->first, NULL);
+        // hybridAnalysis_->removeInstrumentation(bpfunc,false,false);
         bpfunc->removeInstrumentation(false);
     }
 
-    //remove instrumentation from dead functions
-    for(std::list<func_instance*>::iterator fit = deadFuncs.begin();
-        fit != deadFuncs.end();
-        fit++)
-    {
+    // remove instrumentation from dead functions
+    const std::list<func_instance*>::const_iterator
+		e_dfIt = deadCode->getDeadFuncs().end();
+    for (std::list<func_instance*>::const_iterator
+	     dfIt = deadCode->getDeadFuncs().begin();
+	     dfIt != e_dfIt; dfIt++) {
         // remove instrumentation
-        findOrCreateBPFunc(*fit,NULL)->removeInstrumentation(true);
+        findOrCreateBPFunc(*dfIt, NULL)->removeInstrumentation(true);
     }
 
     finalizeInsertionSet(false);
@@ -1561,33 +1559,35 @@ void BPatch_process::overwriteAnalysisUpdate
 
     // create stub edge set which is: all edges such that:
     //     e->trg() in owBBIs and
-    //     while e->src() in delBlocks choose stub from among e->src()->sources()
-    std::map<func_instance*,vector<edgeStub> > stubs =
-       llproc->getStubs(owBBIs,delBlocks,deadFuncs);
+    //     while e->src() in deadBlocks choose stub from among e->src()->sources()
+    std::map<func_instance*, std::vector<edgeStub> > stubs =
+       llproc->getStubs(owBBIs, deadCode->getDeadBlocks(),
+	                    deadCode->getDeadFuncs());
 
     // get stubs for dead funcs
     map<Address,vector<block_instance*> > deadFuncCallers;
-    for(std::list<func_instance*>::iterator fit = deadFuncs.begin();
-        fit != deadFuncs.end();
-        fit++)
-    {
-       if ((*fit)->getLiveCallerBlocks(delBlocks, deadFuncs, deadFuncCallers) &&
-           ((*fit)->ifunc()->hasWeirdInsns() || hasWeirdEntryBytes(*fit))) 
-       {
+    for (std::list<func_instance*>::const_iterator
+	     fit = deadCode->getDeadFuncs().begin();
+	     fit != e_dfIt; fit++) {
+       if ((*fit)->getLiveCallerBlocks(deadCode->getDeadBlocks(),
+		                               deadCode->getDeadFuncs(), deadFuncCallers) &&
+           ((*fit)->ifunc()->hasWeirdInsns() || hasWeirdEntryBytes(*fit))) {
           // don't reparse the function if it's likely a garbage function, 
           // but mark the caller point as unresolved so we'll re-parse
           // if we actually call into the garbage func
           Address funcAddr = (*fit)->addr();
-          vector<block_instance*>::iterator sit = deadFuncCallers[funcAddr].begin();
+          vector<block_instance*>::iterator
+			  sit = deadFuncCallers[funcAddr].begin();
           for ( ; sit != deadFuncCallers[funcAddr].end(); sit++) {
-             (*sit)->llb()->setUnresolvedCF(true);
-             vector<func_instance*> cfuncs;
-             (*sit)->getFuncs(std::back_inserter(cfuncs));
-             for (unsigned i=0; i < cfuncs.size(); i++) {
-                cfuncs[i]->ifunc()->setPrevBlocksUnresolvedCF(0); // force rebuild of unresolved list
-                cfuncs[i]->preCallPoint(*sit, true); // create point
-                monitorFuncs.insert(findOrCreateBPFunc(cfuncs[i], NULL));
-             }
+              (*sit)->llb()->setUnresolvedCF(true);
+              vector<func_instance*> cfuncs;
+              (*sit)->getFuncs(std::back_inserter(cfuncs));
+              for (unsigned i=0; i < cfuncs.size(); i++) {
+                  // force rebuild of unresolved list
+                  cfuncs[i]->ifunc()->setPrevBlocksUnresolvedCF(0);
+                  cfuncs[i]->preCallPoint(*sit, true); // create point
+                  monitorFuncs.insert(findOrCreateBPFunc(cfuncs[i], NULL));
+              }
           }
           deadFuncCallers.erase(deadFuncCallers.find(funcAddr));
        }
@@ -1596,38 +1596,39 @@ void BPatch_process::overwriteAnalysisUpdate
     // set new entry points for functions with NewF blocks, the active blocks
     // in newFuncEntries serve as suggested entry points, but will not be 
     // chosen if there are other blocks in the function with no incoming edges
-    for (map<func_instance*,block_instance*>::iterator nit = newFuncEntries.begin();
-         nit != newFuncEntries.end();
-         nit++)
-    {
-        nit->first->setNewEntry(nit->second,delBlocks);
+	const map<func_instance*, block_instance*>::const_iterator
+		e_nfIt = deadCode->getNewFuncEntries().end();
+    for (map<func_instance*, block_instance*>::const_iterator
+	     nfIt = deadCode->getNewFuncEntries().begin();
+	     nfIt != e_nfIt; nfIt++) {
+	    nfIt->first->setNewEntry(nfIt->second, deadCode->getDeadBlocks());
     }
     
-    // delete delBlocks and set new function entry points, if necessary
+    // delete deadBlocks and set new function entry points, if necessary
     vector<PatchBlock*> delVector;
-    for(set<block_instance*>::reverse_iterator bit = delBlocks.rbegin(); 
-        bit != delBlocks.rend();
-        bit++)
-    {
-        mal_printf("Deleting block [%lx %lx)\n", (*bit)->start(),(*bit)->end());
-        deadBlocks.push_back(pair<Address,int>((*bit)->start(),(*bit)->size()));
-        delVector.push_back(*bit);
+    for (set<block_instance*>::reverse_iterator
+	     bit = deadCode->getDeadBlocks().rbegin(); 
+	    bit != deadCode->getDeadBlocks().rend(); bit++) {
+		mal_printf("Deleting block [%lx %lx)\n", (*bit)->start(), (*bit)->end());
+		deadBlocks.push_back(pair<Address,int>((*bit)->start(), (*bit)->size()));
+		delVector.push_back(*bit);
     }
-    if (!delVector.empty() && ! PatchAPI::PatchModifier::remove(delVector,true)) {
+
+    if (!delVector.empty() &&
+		!PatchAPI::PatchModifier::remove(delVector, true)) {
         assert(0);
     }
     mal_printf("Done deleting blocks\n"); 
     // delete completely dead functions // 
 
     // save deadFunc block addresses in deadBlocks
-    for(std::list<func_instance*>::iterator fit = deadFuncs.begin();
-        fit != deadFuncs.end();
-        fit++)
-    {
-        const PatchFunction::Blockset& deadBs = (*fit)->blocks();
-        PatchFunction::Blockset::const_iterator bIter= deadBs.begin();
-        for (; bIter != deadBs.end(); bIter++) {
-            deadBlocks.push_back(pair<Address,int>((*bIter)->start(),
+    for (std::list<func_instance*>::const_iterator
+	     dfIt = deadCode->getDeadFuncs().begin();
+	     dfIt != e_dfIt; dfIt++) {
+		const PatchFunction::Blockset& deadBs = (*dfIt)->blocks();
+		PatchFunction::Blockset::const_iterator bIter= deadBs.begin();
+		for (; bIter != deadBs.end(); bIter++) {
+			deadBlocks.push_back(pair<Address,int>((*bIter)->start(),
                                                    (*bIter)->size()));
         }
     }
@@ -1635,100 +1636,93 @@ void BPatch_process::overwriteAnalysisUpdate
     // now actually delete the dead functions and redirect call edges to sink 
     // block (if there already is an edge to the sink block, redirect 
     // doesn't duplicate the edge)
-    for(std::list<func_instance*>::iterator fit = deadFuncs.begin();
-        fit != deadFuncs.end();
-        fit++)
-    {
-        const PatchBlock::edgelist & srcs = (*fit)->entry()->sources();
-        vector<PatchEdge*> srcVec; // can't operate off edgelist, since we'll be deleting edges
-        srcVec.insert(srcVec.end(), srcs.begin(), srcs.end());
-        for (vector<PatchEdge*>::const_iterator sit = srcVec.begin();
-             sit != srcVec.end();
-             sit++)
-        {
-           if ((*sit)->type() == ParseAPI::CALL) {
-              PatchAPI::PatchModifier::redirect(*sit, NULL);
-           }
-        }
+    for (std::list<func_instance*>::const_iterator
+	     dfIt = deadCode->getDeadFuncs().begin();
+	     dfIt != e_dfIt; dfIt++) {
+		const PatchBlock::edgelist & srcs = (*dfIt)->entry()->sources();
+		// can't operate off edgelist, since we'll be deleting edges
+		vector<PatchEdge*> srcVec;
+		srcVec.insert(srcVec.end(), srcs.begin(), srcs.end());
+		for (vector<PatchEdge*>::const_iterator sit = srcVec.begin();
+             sit != srcVec.end(); sit++) {
+			if ((*sit)->type() == ParseAPI::CALL) {
+				PatchAPI::PatchModifier::redirect(*sit, NULL);
+			}
+		}
 
-        if (false == PatchAPI::PatchModifier::remove(*fit)) {
-            assert(0);
-        }
-    }
-    mal_printf("Done deleting functions\n");
-
+		if (false == PatchAPI::PatchModifier::remove(*dfIt)) {
+			assert(0);
+		}
+	}
+	mal_printf("Done deleting functions\n");
 
     // set up data structures for re-parsing dead functions from stubs
     map<mapped_object*,vector<edgeStub> > dfstubs;
-    for (map<Address, vector<block_instance*> >::iterator sit = deadFuncCallers.begin();
-         sit != deadFuncCallers.end();
-         sit++)
-    {
-       for (vector<block_instance*>::iterator bit = sit->second.begin();
-            bit != sit->second.end();
-            bit++) 
-       {
-          // re-instate call edges to the function
-          dfstubs[(*bit)->obj()].push_back(edgeStub(*bit,
-                                                    sit->first,
-                                                    ParseAPI::CALL));
-       }
-   }
+	const map<Address, vector<block_instance*> >::iterator
+		e_sIt = deadFuncCallers.end();
+    for (map<Address, vector<block_instance*> >::iterator
+	     sIt = deadFuncCallers.begin();
+	     sIt != e_sIt; sIt++) {
+		vector<block_instance*>::iterator e_bIt = sIt->second.end();
+		for (vector<block_instance*>::iterator bIt = sIt->second.begin();
+		     bIt != e_bIt; bIt++) {
+			// re-instate call edges to the function
+			dfstubs[(*bIt)->obj()].push_back(edgeStub(*bIt, sIt->first,
+			                                          ParseAPI::CALL));
+		}
+	}
 
-    // re-parse the functions
-    for (map<mapped_object*,vector<edgeStub> >::iterator mit= dfstubs.begin();
-         mit != dfstubs.end(); mit++)
-    {
-        mit->first->setCodeBytesUpdated(false);
-        if (mit->first->parseNewEdges(mit->second)) {
-            // add functions to output vector
-            for (unsigned fidx=0; fidx < mit->second.size(); fidx++) {
-               BPatch_function *bpfunc = findFunctionByEntry(mit->second[fidx].trg);
-               if (bpfunc) {
-                  owFuncs.push_back(bpfunc);
-               } else {
-                  // couldn't reparse
-                  mal_printf("WARNING: Couldn't re-parse an overwritten "
-                             "function at %lx %s[%d]\n", mit->second[fidx].trg, 
-                             FILE__,__LINE__);
-               }
-            }
-        } else {
-            mal_printf("ERROR: Couldn't re-parse overwritten "
-                       "functions %s[%d]\n", FILE__,__LINE__);
-        }
-    }
+	// re-parse the functions
+	const map<mapped_object*,vector<edgeStub> >::iterator e_moIt = dfstubs.end();
+	for (map<mapped_object*,vector<edgeStub> >::iterator moIt = dfstubs.begin();
+	     moIt != e_moIt; moIt++) {
+		moIt->first->setCodeBytesUpdated(false);
+		if (moIt->first->parseNewEdges(moIt->second)) {
+			// add functions to output vector
+			unsigned es_sz = moIt->second.size();
+			for (unsigned fidx=0; fidx < es_sz; fidx++) {
+				BPatch_function *bpfunc = findFunctionByEntry(moIt->second[fidx].trg);
+				if (bpfunc) {
+					owFuncs.push_back(bpfunc);
+				} else {
+					// couldn't reparse
+					mal_printf("WARNING: Couldn't re-parse an overwritten "
+						       "function at %lx %s[%d]\n", moIt->second[fidx].trg, 
+							   FILE__,__LINE__);
+				}
+			}
+		} else {
+			mal_printf("ERROR: Couldn't re-parse overwritten "
+			           "functions %s[%d]\n", FILE__,__LINE__);
+		}
+	}
 
-    //3. parse new code, one overwritten function at a time
-    for(std::map<func_instance*,set<block_instance*> >::iterator
-        fit = elimMap.begin();
-        fit != elimMap.end();
-        fit++)
-    {
-        // parse new edges in the function
-       if (!stubs[fit->first].empty()) {
-          fit->first->obj()->parseNewEdges(stubs[fit->first]);
-       } else {
-          // stubs may have been shared with another function and parsed in 
-          // the other function's context.  
-          mal_printf("WARNING: didn't have any stub edges for overwritten "
-                     "func %lx\n", fit->first->addr());
-          //KEVINTEST: we used to wind up here with deleted functions, hopefully we do not anymore
-       }
-        // add curFunc to owFuncs, and clear the function's BPatch_flowGraph
-        BPatch_function *bpfunc = findOrCreateBPFunc(fit->first,NULL);
-        bpfunc->removeCFG();
-        owFuncs.push_back(bpfunc);
-    }
+	// 3. parse new code, one overwritten function at a time
+	for (PCProcess::DeadCodeContext::BlockContext::const_iterator
+	     bcIt = deadCode->getBlockContext().begin();
+	     bcIt != e_bcIt; bcIt++) {
+		// parse new edges in the function
+		if (!stubs[bcIt->first].empty()) {
+			bcIt->first->obj()->parseNewEdges(stubs[bcIt->first]);
+		} else {
+			// stubs may have been shared with another function and parsed in 
+			// the other function's context.  
+			mal_printf("WARNING: didn't have any stub edges for overwritten "
+			           "func %lx\n", bcIt->first->addr());
+			// KEVINTEST: we used to wind up here with deleted functions, hopefully we do not anymore
+		}
+		// add curFunc to owFuncs, and clear the function's BPatch_flowGraph
+		BPatch_function *bpfunc = findOrCreateBPFunc(bcIt->first, NULL);
+		bpfunc->removeCFG();
+		owFuncs.push_back(bpfunc);
+	}
 
-    // do a consistency check
-    for(std::map<func_instance*,set<block_instance*> >::iterator 
-        fit = elimMap.begin();
-        fit != elimMap.end();
-        fit++) 
-    {
-        assert(fit->first->consistency());
-    }
+	// do a consistency check
+	for (PCProcess::DeadCodeContext::BlockContext::const_iterator
+	     bcIt = deadCode->getBlockContext().begin();
+	     bcIt != e_bcIt; bcIt++) {
+		assert(bcIt->first->consistency());
+	}
 }
 
 /* Protect analyzed code without protecting relocated code in the

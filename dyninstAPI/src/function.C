@@ -127,7 +127,7 @@ func_instance::~func_instance() {
 // incoming edges.  If there's no obvious block to choose, we stick with the
 // default block
 block_instance * func_instance::setNewEntry(block_instance *def,
-                                            std::set<block_instance*> &deadBlocks)
+                                            const std::set<block_instance*> &deadBlocks)
 {
     block_instance *newEntry = NULL;
     assert(!all_blocks_.empty());

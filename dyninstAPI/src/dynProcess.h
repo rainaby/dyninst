@@ -232,12 +232,31 @@ public:
         std::list<std::pair<Address,Address> >& overwrittenRegions,//output
         std::list<block_instance *> &writtenBBIs);//output
 
-    bool getDeadCode
-    ( const std::list<block_instance*> &owBlocks, // input
-      std::set<block_instance*> &delBlocks, //output: Del(for all f)
-      std::map<func_instance*,set<block_instance*> > &elimMap, //output: elimF
-      std::list<func_instance*> &deadFuncs, //output: DeadF
-      std::map<func_instance*,block_instance*> &newFuncEntries); //output: newF
+    class DeadCodeContext {
+	public:
+        typedef std::map<func_instance*, std::set<block_instance*> > BlockContext;
+        DeadCodeContext(PCProcess *proc) : proc_(proc) {}
+		~DeadCodeContext() {}
+        bool getDeadCode(const std::list<block_instance*> &owBlocks);
+		const std::set<block_instance*> &getDeadBlocks() { return deadBlocks_; }
+		const BlockContext &getBlockContext() { return deadBlockContext_; }
+		const std::list<func_instance*> &getDeadFuncs() { return deadFuncs_; }
+		const std::map<func_instance*, block_instance*> &getNewFuncEntries() {
+			return newFuncEntries_;
+		}
+
+    private:
+        bool getDeadBlockContext(const std::list<block_instance*> &owBlocks);
+        bool getDeadFuncs(const std::list<block_instance*> &owBlocks);
+        bool getNewFuncs(const std::list<block_instance*> &owBlocks);
+
+        PCProcess *proc_;
+        std::set<block_instance*> deadBlocks_;
+        BlockContext deadBlockContext_;
+        std::list<func_instance*> deadFuncs_;
+        std::map<func_instance*, block_instance* > newFuncEntries_;
+    };
+	DeadCodeContext * getDeadCodeContext() {return deadCode_; }
 
     // synch modified mapped objects with current memory contents
     mapped_object *createObjectNoFile(Address addr);
@@ -329,7 +348,7 @@ protected:
 
     // Process create/exec constructor
     PCProcess(ProcControlAPI::Process::ptr pcProc, std::string file,
-            BPatch_hybridMode analysisMode)
+              BPatch_hybridMode analysisMode)
         : pcProc_(pcProc),
           parent_(NULL),
           initialThread_(NULL), 
@@ -337,7 +356,7 @@ protected:
           attached_(true),
           execing_(false),
           exiting_(false),
-       forcedTerminating_(false),
+          forcedTerminating_(false),
           runningWhenAttached_(false), 
           createdViaAttach_(false),
           processState_(ps_stopped),
@@ -347,15 +366,16 @@ protected:
           reportedEvent_(false),
           savedPid_(pcProc->getPid()),
           savedArch_(pcProc->getArchitecture()),
-          analysisMode_(analysisMode), 
+          analysisMode_(analysisMode),
+          deadCode_(NULL),
           sync_event_id_addr_(0),
           sync_event_arg1_addr_(0),
           sync_event_arg2_addr_(0),
           sync_event_arg3_addr_(0),
           sync_event_breakpoint_addr_(0),
-       thread_hash_tids(0),
-       thread_hash_indices(0),
-       thread_hash_size(0),
+          thread_hash_tids(0),
+          thread_hash_indices(0),
+          thread_hash_size(0),
           eventCount_(0),
           tracedSyscalls_(NULL),
           mt_cache_result_(not_cached),
@@ -365,6 +385,8 @@ protected:
           stackwalker_(NULL)
     {
         irpcTramp_ = baseTramp::createForIRPC(this);
+		if (isExploratoryModeOn())
+			deadCode_ = new DeadCodeContext(this);
     }
 
     // Process attach constructor
@@ -375,7 +397,7 @@ protected:
           attached_(true), 
           execing_(false),
           exiting_(false),
-       forcedTerminating_(false),
+          forcedTerminating_(false),
           runningWhenAttached_(false), 
           createdViaAttach_(true),
           processState_(ps_stopped),
@@ -385,15 +407,16 @@ protected:
           reportedEvent_(false),
           savedPid_(pcProc->getPid()),
           savedArch_(pcProc->getArchitecture()),
-          analysisMode_(analysisMode), 
+          analysisMode_(analysisMode),
+          deadCode_(NULL),
           sync_event_id_addr_(0),
           sync_event_arg1_addr_(0),
           sync_event_arg2_addr_(0),
           sync_event_arg3_addr_(0),
           sync_event_breakpoint_addr_(0),
-       thread_hash_tids(0),
-       thread_hash_indices(0),
-       thread_hash_size(0),
+          thread_hash_tids(0),
+          thread_hash_indices(0),
+          thread_hash_size(0),
           eventCount_(0),
           tracedSyscalls_(NULL),
           mt_cache_result_(not_cached),
@@ -403,6 +426,8 @@ protected:
           stackwalker_(NULL)
     {
         irpcTramp_ = baseTramp::createForIRPC(this);
+		if (isExploratoryModeOn())
+			deadCode_ = new DeadCodeContext(this);
     }
 
     static PCProcess *setupForkedProcess(PCProcess *parent, ProcControlAPI::Process::ptr pcProc);
@@ -416,7 +441,7 @@ protected:
           attached_(true), 
           execing_(false),
           exiting_(false),
-       forcedTerminating_(false),
+          forcedTerminating_(false),
           runningWhenAttached_(false), 
           createdViaAttach_(false),
           processState_(ps_stopped),
@@ -426,16 +451,17 @@ protected:
           reportedEvent_(false),
           savedPid_(pcProc->getPid()),
           savedArch_(pcProc->getArchitecture()),
-          analysisMode_(parent->analysisMode_), 
+          analysisMode_(parent->analysisMode_),
+          deadCode_(NULL),
           RT_address_cache_addr_(parent->RT_address_cache_addr_),
           sync_event_id_addr_(parent->sync_event_id_addr_),
           sync_event_arg1_addr_(parent->sync_event_arg1_addr_),
           sync_event_arg2_addr_(parent->sync_event_arg2_addr_),
           sync_event_arg3_addr_(parent->sync_event_arg3_addr_),
           sync_event_breakpoint_addr_(parent->sync_event_breakpoint_addr_),
-       thread_hash_tids(parent->thread_hash_tids),
-       thread_hash_indices(parent->thread_hash_indices),
-       thread_hash_size(parent->thread_hash_size),
+          thread_hash_tids(parent->thread_hash_tids),
+          thread_hash_indices(parent->thread_hash_indices),
+          thread_hash_size(parent->thread_hash_size),
           eventHandler_(parent->eventHandler_),
           eventCount_(0),
           tracedSyscalls_(NULL), // filled after construction
@@ -445,6 +471,8 @@ protected:
           stackwalker_(NULL)
     {
         irpcTramp_ = baseTramp::createForIRPC(this);
+        if (isExploratoryModeOn())
+            deadCode_ = new DeadCodeContext(this);
     }
 
     // bootstrapping
@@ -580,6 +608,7 @@ protected:
 
     // Hybrid Analysis
     BPatch_hybridMode analysisMode_;
+	DeadCodeContext* deadCode_;
 
     // Active instrumentation tracking
     codeRangeTree signalHandlerLocations_;
