@@ -31,14 +31,14 @@
 // $Id: Object.C,v 1.31 2008/11/03 15:19:25 jaw Exp $
 
 #include "Annotatable.h"
-#include "common/h/serialize.h"
+#include "common/src/serialize.h"
 
 #include "Symtab.h"
 #include "symutil.h"
 #include "Module.h"
 #include "Collections.h"
 #include "Function.h"
-#include "dynutil/h/VariableLocation.h"
+#include "common/h/VariableLocation.h"
 #include "symtabAPI/src/Object.h"
 
 #if !defined(os_windows)

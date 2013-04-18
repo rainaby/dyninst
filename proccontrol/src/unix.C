@@ -39,11 +39,11 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
-#include "common/h/Types.h"
+#include "common/src/Types.h"
 #if defined(os_linux)
-#include "common/h/linuxKludges.h"
+#include "common/src/linuxKludges.h"
 #elif defined(os_freebsd)
-#include "common/h/freebsdKludges.h"
+#include "common/src/freebsdKludges.h"
 #endif
 
 unix_process::unix_process(Dyninst::PID p, std::string e, std::vector<std::string> a, 

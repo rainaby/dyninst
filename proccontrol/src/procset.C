@@ -38,7 +38,7 @@
 #include "proccontrol/src/int_handler.h"
 #include "proccontrol/src/irpc.h"
 #include "proccontrol/src/response.h"
-#include "common/h/Types.h"
+#include "common/src/Types.h"
 #include <stdlib.h>
 #include <map>
 #include <algorithm>

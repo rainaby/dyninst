@@ -38,7 +38,7 @@
 #include "proccontrol/src/irpc.h"
 #include "proccontrol/src/response.h"
 #include "proccontrol/src/int_event.h"
-#include "dynutil/h/dyn_regs.h"
+#include "common/h/dyn_regs.h"
 
 #if defined(os_windows)
 #include "proccontrol/src/windows_process.h"
