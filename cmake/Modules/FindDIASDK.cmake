@@ -17,7 +17,8 @@ find_path (DIASDK_INCLUDE_DIR
     HINTS
       ${DIASDK_INCLUDE_DIRS}
     PATHS
-      ENV CPATH) # PATH and INCLUDE will also work
+      ENV CPATH
+      "$ENV{VSINSTALLDIR}/DIA SDK/include") # PATH and INCLUDE will also work
 
 #find_library (DIASDK_LIBRARIES
 #    NAMES
