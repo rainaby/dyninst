@@ -11,6 +11,16 @@ if (DIASDK_INCLUDE_DIRS)
   set (DIASDK_FIND_QUIETLY TRUE)
 endif (DIASDK_INCLUDE_DIRS)
 
+if (MSVC11)
+	GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\11.0\\Setup\\VS;ProductDir] REALPATH CACHE)
+elseif (MSVC10)
+    GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\10.0\\Setup\\VS;ProductDir] REALPATH CACHE)
+elseif (MSVC90)
+    GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\9.0\\Setup\\VS;ProductDir] REALPATH CACHE)
+elseif (MSVC80)
+    GET_FILENAME_COMPONENT(VS_DIR [HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\VisualStudio\\8.0\\Setup\\VS;ProductDir] REALPATH CACHE)
+endif()
+
 find_path (DIASDK_INCLUDE_DIR
     NAMES
       cvconst.h
@@ -18,7 +28,7 @@ find_path (DIASDK_INCLUDE_DIR
       ${DIASDK_INCLUDE_DIRS}
     PATHS
       ENV CPATH
-      "$ENV{VSINSTALLDIR}/DIA SDK/include") # PATH and INCLUDE will also work
+      "${VS_DIR}/DIA SDK/include") # PATH and INCLUDE will also work
 
 #find_library (DIASDK_LIBRARIES
 #    NAMES
