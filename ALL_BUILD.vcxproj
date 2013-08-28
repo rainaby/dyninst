@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{C279E421-5523-42F3-AF3F-22CE0BDB43D3}</ProjectGUID>
+    <ProjectGUID>{29693090-EC61-4A0B-A0A5-CB2DC404D3EF}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>Win32</Platform>
     <ProjectName>ALL_BUILD</ProjectName>
@@ -29,21 +29,25 @@
     <ConfigurationType>Utility</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Utility</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'" Label="Configuration">
     <ConfigurationType>Utility</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'" Label="Configuration">
     <ConfigurationType>Utility</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -60,7 +64,7 @@
     </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
-      <AdditionalIncludeDirectories>C:/Program Files (x86)/Microsoft Visual Studio 10.0/DIA SDK/include;C:/Program Files (x86)/boost/boost_1_51;C:/dyninst-cmake/dyninst;C:/dyninst-cmake/dyninst/external;C:/dyninst-cmake/dyninst/common/h;C:/dyninst-cmake/dyninst/dataflowAPI/h;C:/dyninst-cmake/dyninst/dyninstAPI/h;C:/dyninst-cmake/dyninst/dyninstAPI_RT/h;C:/dyninst-cmake/dyninst/dynutil/h;C:/dyninst-cmake/dyninst/instructionAPI/h;C:/dyninst-cmake/dyninst/parseAPI/h;C:/dyninst-cmake/dyninst/patchAPI/h;C:/dyninst-cmake/dyninst/proccontrol/h;C:/dyninst-cmake/dyninst/stackwalk/h;C:/dyninst-cmake/dyninst/symtabAPI/h;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:/Program Files (x86)/Microsoft Visual Studio 11.0/DIA SDK/include;C:/boost;C:/scratch/dyninst;C:/scratch/dyninst/external;C:/scratch/dyninst/common/h;C:/scratch/dyninst/dataflowAPI/h;C:/scratch/dyninst/dyninstAPI/h;C:/scratch/dyninst/dyninstAPI_RT/h;C:/scratch/dyninst/dynutil/h;C:/scratch/dyninst/instructionAPI/h;C:/scratch/dyninst/parseAPI/h;C:/scratch/dyninst/patchAPI/h;C:/scratch/dyninst/proccontrol/h;C:/scratch/dyninst/stackwalk/h;C:/scratch/dyninst/symtabAPI/h;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -70,7 +74,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>
-      <AdditionalIncludeDirectories>C:/Program Files (x86)/Microsoft Visual Studio 10.0/DIA SDK/include;C:/Program Files (x86)/boost/boost_1_51;C:/dyninst-cmake/dyninst;C:/dyninst-cmake/dyninst/external;C:/dyninst-cmake/dyninst/common/h;C:/dyninst-cmake/dyninst/dataflowAPI/h;C:/dyninst-cmake/dyninst/dyninstAPI/h;C:/dyninst-cmake/dyninst/dyninstAPI_RT/h;C:/dyninst-cmake/dyninst/dynutil/h;C:/dyninst-cmake/dyninst/instructionAPI/h;C:/dyninst-cmake/dyninst/parseAPI/h;C:/dyninst-cmake/dyninst/patchAPI/h;C:/dyninst-cmake/dyninst/proccontrol/h;C:/dyninst-cmake/dyninst/stackwalk/h;C:/dyninst-cmake/dyninst/symtabAPI/h;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:/Program Files (x86)/Microsoft Visual Studio 11.0/DIA SDK/include;C:/boost;C:/scratch/dyninst;C:/scratch/dyninst/external;C:/scratch/dyninst/common/h;C:/scratch/dyninst/dataflowAPI/h;C:/scratch/dyninst/dyninstAPI/h;C:/scratch/dyninst/dyninstAPI_RT/h;C:/scratch/dyninst/dynutil/h;C:/scratch/dyninst/instructionAPI/h;C:/scratch/dyninst/parseAPI/h;C:/scratch/dyninst/patchAPI/h;C:/scratch/dyninst/proccontrol/h;C:/scratch/dyninst/stackwalk/h;C:/scratch/dyninst/symtabAPI/h;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -80,7 +84,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">
     <Midl>
-      <AdditionalIncludeDirectories>C:/Program Files (x86)/Microsoft Visual Studio 10.0/DIA SDK/include;C:/Program Files (x86)/boost/boost_1_51;C:/dyninst-cmake/dyninst;C:/dyninst-cmake/dyninst/external;C:/dyninst-cmake/dyninst/common/h;C:/dyninst-cmake/dyninst/dataflowAPI/h;C:/dyninst-cmake/dyninst/dyninstAPI/h;C:/dyninst-cmake/dyninst/dyninstAPI_RT/h;C:/dyninst-cmake/dyninst/dynutil/h;C:/dyninst-cmake/dyninst/instructionAPI/h;C:/dyninst-cmake/dyninst/parseAPI/h;C:/dyninst-cmake/dyninst/patchAPI/h;C:/dyninst-cmake/dyninst/proccontrol/h;C:/dyninst-cmake/dyninst/stackwalk/h;C:/dyninst-cmake/dyninst/symtabAPI/h;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:/Program Files (x86)/Microsoft Visual Studio 11.0/DIA SDK/include;C:/boost;C:/scratch/dyninst;C:/scratch/dyninst/external;C:/scratch/dyninst/common/h;C:/scratch/dyninst/dataflowAPI/h;C:/scratch/dyninst/dyninstAPI/h;C:/scratch/dyninst/dyninstAPI_RT/h;C:/scratch/dyninst/dynutil/h;C:/scratch/dyninst/instructionAPI/h;C:/scratch/dyninst/parseAPI/h;C:/scratch/dyninst/patchAPI/h;C:/scratch/dyninst/proccontrol/h;C:/scratch/dyninst/stackwalk/h;C:/scratch/dyninst/symtabAPI/h;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -90,7 +94,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">
     <Midl>
-      <AdditionalIncludeDirectories>C:/Program Files (x86)/Microsoft Visual Studio 10.0/DIA SDK/include;C:/Program Files (x86)/boost/boost_1_51;C:/dyninst-cmake/dyninst;C:/dyninst-cmake/dyninst/external;C:/dyninst-cmake/dyninst/common/h;C:/dyninst-cmake/dyninst/dataflowAPI/h;C:/dyninst-cmake/dyninst/dyninstAPI/h;C:/dyninst-cmake/dyninst/dyninstAPI_RT/h;C:/dyninst-cmake/dyninst/dynutil/h;C:/dyninst-cmake/dyninst/instructionAPI/h;C:/dyninst-cmake/dyninst/parseAPI/h;C:/dyninst-cmake/dyninst/patchAPI/h;C:/dyninst-cmake/dyninst/proccontrol/h;C:/dyninst-cmake/dyninst/stackwalk/h;C:/dyninst-cmake/dyninst/symtabAPI/h;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:/Program Files (x86)/Microsoft Visual Studio 11.0/DIA SDK/include;C:/boost;C:/scratch/dyninst;C:/scratch/dyninst/external;C:/scratch/dyninst/common/h;C:/scratch/dyninst/dataflowAPI/h;C:/scratch/dyninst/dyninstAPI/h;C:/scratch/dyninst/dyninstAPI_RT/h;C:/scratch/dyninst/dynutil/h;C:/scratch/dyninst/instructionAPI/h;C:/scratch/dyninst/parseAPI/h;C:/scratch/dyninst/patchAPI/h;C:/scratch/dyninst/proccontrol/h;C:/scratch/dyninst/stackwalk/h;C:/scratch/dyninst/symtabAPI/h;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -100,9 +104,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <CustomBuild Include="CMakeLists.txt">
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building Custom Rule C:/dyninst-cmake/dyninst/CMakeLists.txt</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building Custom Rule C:/scratch/dyninst/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
-"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -HC:/dyninst-cmake/dyninst -BC:/dyninst-cmake/dyninst --check-stamp-file C:\dyninst-cmake\dyninst\CMakeFiles\generate.stamp
+"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\CMakeFiles\generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -110,11 +114,12 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:/dyninst-cmake/dyninst/CMakeLists.txt;C:\dyninst-cmake\dyninst\CMakeLists.txt;C:\dyninst-cmake\dyninst\CMakeFiles\2.8.11.1\CMakeSystem.cmake;C:\dyninst-cmake\dyninst\CMakeFiles\2.8.11.1\CMakeCCompiler.cmake;C:\dyninst-cmake\dyninst\CMakeFiles\2.8.11.1\CMakeCXXCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeGenericSystem.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\WindowsPaths.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC.cmake;C:\dyninst-cmake\dyninst\CMakeFiles\2.8.11.1\CMakeRCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeRCInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCommonLanguageInclude.cmake;C:\dyninst-cmake\dyninst\cmake\platform.cmake;C:\dyninst-cmake\dyninst\cmake\platform_windows.cmake;C:\dyninst-cmake\dyninst\cmake\packages.cmake;C:\dyninst-cmake\dyninst\cmake\Modules\FindDIASDK.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindBoost.cmake;C:\dyninst-cmake\dyninst\cmake\cap_arch_def.cmake;C:\dyninst-cmake\dyninst\cmake\c++11.cmake;C:\dyninst-cmake\dyninst\cmake\warnings.cmake;C:\dyninst-cmake\dyninst\cmake\options.cmake;C:\dyninst-cmake\dyninst\cmake\optimization.cmake;C:\dyninst-cmake\dyninst\cmake\DyninstConfig.cmake.in;C:\dyninst-cmake\dyninst\cmake\DyninstConfigVersion.cmake.in;C:\dyninst-cmake\dyninst\cmake\DyninstConfigVersion.cmake.in;C:\dyninst-cmake\dyninst\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\dyninst-cmake\dyninst\CMakeFiles\generate.stamp</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Building Custom Rule C:/dyninst-cmake/dyninst/CMakeLists.txt</Message>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:/scratch/dyninst/CMakeLists.txt;C:\scratch\dyninst\CMakeLists.txt;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeVS11FindMake.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineSystem.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeSystem.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeSystem.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompilerId.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CompilerId\VS-10.vcxproj.in;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeClDeps.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeFindBinUtils.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCXXCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-CXX.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompilerId.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CompilerId\VS-10.vcxproj.in;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeClDeps.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeFindBinUtils.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeCXXCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeGenericSystem.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\WindowsPaths.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineRCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeRCCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeRCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeRCInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestRCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestCompilerCommon.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompilerABI.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeParseImplicitLinkInfo.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCCompilerABI.c;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestCXXCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestCompilerCommon.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompilerABI.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeParseImplicitLinkInfo.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXCompilerABI.cpp;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeCXXCompiler.cmake;C:\scratch\dyninst\cmake\platform.cmake;C:\scratch\dyninst\cmake\platform_windows.cmake;C:\scratch\dyninst\cmake\packages.cmake;C:\scratch\dyninst\cmake\Modules\FindDIASDK.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindBoost.cmake;C:\scratch\dyninst\cmake\cap_arch_def.cmake;C:\scratch\dyninst\cmake\c++11.cmake;C:\scratch\dyninst\cmake\warnings.cmake;C:\scratch\dyninst\cmake\options.cmake;C:\scratch\dyninst\cmake\optimization.cmake;C:\scratch\dyninst\cmake\DyninstConfigVersion.cmake.in;C:\scratch\dyninst\cmake\DyninstConfigVersion.cmake.in;C:\scratch\dyninst\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\scratch\dyninst\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Building Custom Rule C:/scratch/dyninst/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
-"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -HC:/dyninst-cmake/dyninst -BC:/dyninst-cmake/dyninst --check-stamp-file C:\dyninst-cmake\dyninst\CMakeFiles\generate.stamp
+"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\CMakeFiles\generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -122,11 +127,12 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:/dyninst-cmake/dyninst/CMakeLists.txt;C:\dyninst-cmake\dyninst\CMakeLists.txt;C:\dyninst-cmake\dyninst\CMakeFiles\2.8.11.1\CMakeSystem.cmake;C:\dyninst-cmake\dyninst\CMakeFiles\2.8.11.1\CMakeCCompiler.cmake;C:\dyninst-cmake\dyninst\CMakeFiles\2.8.11.1\CMakeCXXCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeGenericSystem.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\WindowsPaths.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC.cmake;C:\dyninst-cmake\dyninst\CMakeFiles\2.8.11.1\CMakeRCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeRCInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCommonLanguageInclude.cmake;C:\dyninst-cmake\dyninst\cmake\platform.cmake;C:\dyninst-cmake\dyninst\cmake\platform_windows.cmake;C:\dyninst-cmake\dyninst\cmake\packages.cmake;C:\dyninst-cmake\dyninst\cmake\Modules\FindDIASDK.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindBoost.cmake;C:\dyninst-cmake\dyninst\cmake\cap_arch_def.cmake;C:\dyninst-cmake\dyninst\cmake\c++11.cmake;C:\dyninst-cmake\dyninst\cmake\warnings.cmake;C:\dyninst-cmake\dyninst\cmake\options.cmake;C:\dyninst-cmake\dyninst\cmake\optimization.cmake;C:\dyninst-cmake\dyninst\cmake\DyninstConfig.cmake.in;C:\dyninst-cmake\dyninst\cmake\DyninstConfigVersion.cmake.in;C:\dyninst-cmake\dyninst\cmake\DyninstConfigVersion.cmake.in;C:\dyninst-cmake\dyninst\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\dyninst-cmake\dyninst\CMakeFiles\generate.stamp</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">Building Custom Rule C:/dyninst-cmake/dyninst/CMakeLists.txt</Message>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:/scratch/dyninst/CMakeLists.txt;C:\scratch\dyninst\CMakeLists.txt;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeVS11FindMake.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineSystem.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeSystem.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeSystem.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompilerId.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CompilerId\VS-10.vcxproj.in;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeClDeps.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeFindBinUtils.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCXXCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-CXX.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompilerId.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CompilerId\VS-10.vcxproj.in;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeClDeps.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeFindBinUtils.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeCXXCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeGenericSystem.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\WindowsPaths.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineRCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeRCCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeRCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeRCInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestRCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestCompilerCommon.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompilerABI.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeParseImplicitLinkInfo.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCCompilerABI.c;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestCXXCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestCompilerCommon.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompilerABI.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeParseImplicitLinkInfo.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXCompilerABI.cpp;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeCXXCompiler.cmake;C:\scratch\dyninst\cmake\platform.cmake;C:\scratch\dyninst\cmake\platform_windows.cmake;C:\scratch\dyninst\cmake\packages.cmake;C:\scratch\dyninst\cmake\Modules\FindDIASDK.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindBoost.cmake;C:\scratch\dyninst\cmake\cap_arch_def.cmake;C:\scratch\dyninst\cmake\c++11.cmake;C:\scratch\dyninst\cmake\warnings.cmake;C:\scratch\dyninst\cmake\options.cmake;C:\scratch\dyninst\cmake\optimization.cmake;C:\scratch\dyninst\cmake\DyninstConfigVersion.cmake.in;C:\scratch\dyninst\cmake\DyninstConfigVersion.cmake.in;C:\scratch\dyninst\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\scratch\dyninst\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">Building Custom Rule C:/scratch/dyninst/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">setlocal
-"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -HC:/dyninst-cmake/dyninst -BC:/dyninst-cmake/dyninst --check-stamp-file C:\dyninst-cmake\dyninst\CMakeFiles\generate.stamp
+"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\CMakeFiles\generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -134,11 +140,12 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:/dyninst-cmake/dyninst/CMakeLists.txt;C:\dyninst-cmake\dyninst\CMakeLists.txt;C:\dyninst-cmake\dyninst\CMakeFiles\2.8.11.1\CMakeSystem.cmake;C:\dyninst-cmake\dyninst\CMakeFiles\2.8.11.1\CMakeCCompiler.cmake;C:\dyninst-cmake\dyninst\CMakeFiles\2.8.11.1\CMakeCXXCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeGenericSystem.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\WindowsPaths.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC.cmake;C:\dyninst-cmake\dyninst\CMakeFiles\2.8.11.1\CMakeRCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeRCInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCommonLanguageInclude.cmake;C:\dyninst-cmake\dyninst\cmake\platform.cmake;C:\dyninst-cmake\dyninst\cmake\platform_windows.cmake;C:\dyninst-cmake\dyninst\cmake\packages.cmake;C:\dyninst-cmake\dyninst\cmake\Modules\FindDIASDK.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindBoost.cmake;C:\dyninst-cmake\dyninst\cmake\cap_arch_def.cmake;C:\dyninst-cmake\dyninst\cmake\c++11.cmake;C:\dyninst-cmake\dyninst\cmake\warnings.cmake;C:\dyninst-cmake\dyninst\cmake\options.cmake;C:\dyninst-cmake\dyninst\cmake\optimization.cmake;C:\dyninst-cmake\dyninst\cmake\DyninstConfig.cmake.in;C:\dyninst-cmake\dyninst\cmake\DyninstConfigVersion.cmake.in;C:\dyninst-cmake\dyninst\cmake\DyninstConfigVersion.cmake.in;C:\dyninst-cmake\dyninst\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\dyninst-cmake\dyninst\CMakeFiles\generate.stamp</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Building Custom Rule C:/dyninst-cmake/dyninst/CMakeLists.txt</Message>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:/scratch/dyninst/CMakeLists.txt;C:\scratch\dyninst\CMakeLists.txt;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeVS11FindMake.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineSystem.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeSystem.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeSystem.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompilerId.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CompilerId\VS-10.vcxproj.in;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeClDeps.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeFindBinUtils.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCXXCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-CXX.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompilerId.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CompilerId\VS-10.vcxproj.in;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeClDeps.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeFindBinUtils.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeCXXCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeGenericSystem.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\WindowsPaths.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineRCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeRCCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeRCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeRCInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestRCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestCompilerCommon.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompilerABI.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeParseImplicitLinkInfo.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCCompilerABI.c;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestCXXCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestCompilerCommon.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompilerABI.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeParseImplicitLinkInfo.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXCompilerABI.cpp;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeCXXCompiler.cmake;C:\scratch\dyninst\cmake\platform.cmake;C:\scratch\dyninst\cmake\platform_windows.cmake;C:\scratch\dyninst\cmake\packages.cmake;C:\scratch\dyninst\cmake\Modules\FindDIASDK.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindBoost.cmake;C:\scratch\dyninst\cmake\cap_arch_def.cmake;C:\scratch\dyninst\cmake\c++11.cmake;C:\scratch\dyninst\cmake\warnings.cmake;C:\scratch\dyninst\cmake\options.cmake;C:\scratch\dyninst\cmake\optimization.cmake;C:\scratch\dyninst\cmake\DyninstConfigVersion.cmake.in;C:\scratch\dyninst\cmake\DyninstConfigVersion.cmake.in;C:\scratch\dyninst\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\scratch\dyninst\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Building Custom Rule C:/scratch/dyninst/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">setlocal
-"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -HC:/dyninst-cmake/dyninst -BC:/dyninst-cmake/dyninst --check-stamp-file C:\dyninst-cmake\dyninst\CMakeFiles\generate.stamp
+"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\CMakeFiles\generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -146,12 +153,13 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:/dyninst-cmake/dyninst/CMakeLists.txt;C:\dyninst-cmake\dyninst\CMakeLists.txt;C:\dyninst-cmake\dyninst\CMakeFiles\2.8.11.1\CMakeSystem.cmake;C:\dyninst-cmake\dyninst\CMakeFiles\2.8.11.1\CMakeCCompiler.cmake;C:\dyninst-cmake\dyninst\CMakeFiles\2.8.11.1\CMakeCXXCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeGenericSystem.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\WindowsPaths.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC.cmake;C:\dyninst-cmake\dyninst\CMakeFiles\2.8.11.1\CMakeRCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeRCInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCommonLanguageInclude.cmake;C:\dyninst-cmake\dyninst\cmake\platform.cmake;C:\dyninst-cmake\dyninst\cmake\platform_windows.cmake;C:\dyninst-cmake\dyninst\cmake\packages.cmake;C:\dyninst-cmake\dyninst\cmake\Modules\FindDIASDK.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindBoost.cmake;C:\dyninst-cmake\dyninst\cmake\cap_arch_def.cmake;C:\dyninst-cmake\dyninst\cmake\c++11.cmake;C:\dyninst-cmake\dyninst\cmake\warnings.cmake;C:\dyninst-cmake\dyninst\cmake\options.cmake;C:\dyninst-cmake\dyninst\cmake\optimization.cmake;C:\dyninst-cmake\dyninst\cmake\DyninstConfig.cmake.in;C:\dyninst-cmake\dyninst\cmake\DyninstConfigVersion.cmake.in;C:\dyninst-cmake\dyninst\cmake\DyninstConfigVersion.cmake.in;C:\dyninst-cmake\dyninst\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\dyninst-cmake\dyninst\CMakeFiles\generate.stamp</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:/scratch/dyninst/CMakeLists.txt;C:\scratch\dyninst\CMakeLists.txt;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeVS11FindMake.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineSystem.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeSystem.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeSystem.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompilerId.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CompilerId\VS-10.vcxproj.in;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeClDeps.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeFindBinUtils.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCXXCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-CXX.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompilerId.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CompilerId\VS-10.vcxproj.in;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeClDeps.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeFindBinUtils.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeCXXCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeGenericSystem.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\WindowsPaths.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineRCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeRCCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeRCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeRCInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestRCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestCompilerCommon.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompilerABI.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeParseImplicitLinkInfo.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCCompilerABI.c;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeCCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXInformation.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\Platform\Windows-MSVC.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestCXXCompiler.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeTestCompilerCommon.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeDetermineCompilerABI.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeParseImplicitLinkInfo.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXCompilerABI.cpp;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXCompiler.cmake.in;C:\scratch\dyninst\CMakeFiles\2.8.11.2\CMakeCXXCompiler.cmake;C:\scratch\dyninst\cmake\platform.cmake;C:\scratch\dyninst\cmake\platform_windows.cmake;C:\scratch\dyninst\cmake\packages.cmake;C:\scratch\dyninst\cmake\Modules\FindDIASDK.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeParseArguments.cmake;C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\FindBoost.cmake;C:\scratch\dyninst\cmake\cap_arch_def.cmake;C:\scratch\dyninst\cmake\c++11.cmake;C:\scratch\dyninst\cmake\warnings.cmake;C:\scratch\dyninst\cmake\options.cmake;C:\scratch\dyninst\cmake\optimization.cmake;C:\scratch\dyninst\cmake\DyninstConfigVersion.cmake.in;C:\scratch\dyninst\cmake\DyninstConfigVersion.cmake.in;C:\scratch\dyninst\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\scratch\dyninst\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="CMakeFiles\0ccfa8e46c254c51ba1c64343959e991\ALL_BUILD.rule">
+    <CustomBuild Include="CMakeFiles\e79c8e8bed06f6c96c90f44285626b60\ALL_BUILD.rule">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Build all projects</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
 :cmEnd
@@ -160,8 +168,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:/dyninst-cmake/dyninst/CMakeFiles/0ccfa8e46c254c51ba1c64343959e991/ALL_BUILD.rule;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\dyninst-cmake\dyninst\CMakeFiles\ALL_BUILD</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:/scratch/dyninst/CMakeFiles/e79c8e8bed06f6c96c90f44285626b60/ALL_BUILD.rule;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\scratch\dyninst\CMakeFiles\ALL_BUILD</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Build all projects</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
 :cmEnd
@@ -170,8 +179,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:/dyninst-cmake/dyninst/CMakeFiles/0ccfa8e46c254c51ba1c64343959e991/ALL_BUILD.rule;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\dyninst-cmake\dyninst\CMakeFiles\ALL_BUILD</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:/scratch/dyninst/CMakeFiles/e79c8e8bed06f6c96c90f44285626b60/ALL_BUILD.rule;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\scratch\dyninst\CMakeFiles\ALL_BUILD</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">Build all projects</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">setlocal
 :cmEnd
@@ -180,8 +190,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:/dyninst-cmake/dyninst/CMakeFiles/0ccfa8e46c254c51ba1c64343959e991/ALL_BUILD.rule;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\dyninst-cmake\dyninst\CMakeFiles\ALL_BUILD</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:/scratch/dyninst/CMakeFiles/e79c8e8bed06f6c96c90f44285626b60/ALL_BUILD.rule;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\scratch\dyninst\CMakeFiles\ALL_BUILD</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Build all projects</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">setlocal
 :cmEnd
@@ -190,46 +201,71 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:/dyninst-cmake/dyninst/CMakeFiles/0ccfa8e46c254c51ba1c64343959e991/ALL_BUILD.rule;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\dyninst-cmake\dyninst\CMakeFiles\ALL_BUILD</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:/scratch/dyninst/CMakeFiles/e79c8e8bed06f6c96c90f44285626b60/ALL_BUILD.rule;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\scratch\dyninst\CMakeFiles\ALL_BUILD</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeFiles\ALL_BUILD" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="C:/dyninst-cmake/dyninst/ZERO_CHECK.vcxproj">
-      <Project>AAB9B8B5-4638-49F9-84A8-3A57168491CA</Project>
+    <ProjectReference Include="C:/scratch/dyninst/ZERO_CHECK.vcxproj">
+      <Project>7771AD01-0D0E-4986-A738-951B57F141EC</Project>
     </ProjectReference>
-    <ProjectReference Include="C:/dyninst-cmake/dyninst/common/common.vcxproj">
-      <Project>C177E433-B9F9-4222-8000-B375B1F4D013</Project>
+    <ProjectReference Include="C:/scratch/dyninst/common/common.vcxproj">
+      <Project>D20BE4AA-B483-4438-BF59-B118E2561F3F</Project>
     </ProjectReference>
-    <ProjectReference Include="C:/dyninst-cmake/dyninst/dyninstAPI/dyninstAPI.vcxproj">
-      <Project>E073A1A2-1433-425B-AFFE-CE787A4F2E2F</Project>
+    <ProjectReference Include="C:/scratch/dyninst/common/common_static.vcxproj">
+      <Project>B4125DC8-DE60-4707-8FDC-150818A04398</Project>
     </ProjectReference>
-    <ProjectReference Include="C:/dyninst-cmake/dyninst/dyninstAPI_RT/dyninstAPI_RT.vcxproj">
-      <Project>AEF8F40E-1BD3-4650-8F81-5701F3BFBCB3</Project>
+    <ProjectReference Include="C:/scratch/dyninst/dyninstAPI/dyninstAPI.vcxproj">
+      <Project>319C2CB4-CA98-4304-AE20-910F75346C3D</Project>
     </ProjectReference>
-    <ProjectReference Include="C:/dyninst-cmake/dyninst/dyninstAPI_RT/dyninstAPI_RT_static.vcxproj">
-      <Project>EE63DF27-0DEF-4897-8289-8A67C3745025</Project>
+    <ProjectReference Include="C:/scratch/dyninst/dyninstAPI_RT/dyninstAPI_RT.vcxproj">
+      <Project>CA10BBAA-38AF-44F7-8A67-FB7AB40C06CF</Project>
     </ProjectReference>
-    <ProjectReference Include="C:/dyninst-cmake/dyninst/instructionAPI/instructionAPI.vcxproj">
-      <Project>1A2094A6-7BBB-4E53-9DFD-830801D76EE9</Project>
+    <ProjectReference Include="C:/scratch/dyninst/dyninstAPI_RT/dyninstAPI_RT_static.vcxproj">
+      <Project>DF5B2FAF-44DF-4C16-808B-DBBB16974BF2</Project>
     </ProjectReference>
-    <ProjectReference Include="C:/dyninst-cmake/dyninst/parseAPI/parseAPI.vcxproj">
-      <Project>D09AF9B2-5A7D-4517-9CDC-E8DEA662F8A2</Project>
+    <ProjectReference Include="C:/scratch/dyninst/dyninstAPI/dyninstAPI_static.vcxproj">
+      <Project>D419FB79-4B78-4AE5-9C48-9C1DF6ECA976</Project>
     </ProjectReference>
-    <ProjectReference Include="C:/dyninst-cmake/dyninst/patchAPI/patchAPI.vcxproj">
-      <Project>B6BA7C1B-2B1C-4D92-B8BA-C624A34B34D8</Project>
+    <ProjectReference Include="C:/scratch/dyninst/instructionAPI/instructionAPI.vcxproj">
+      <Project>12BF56EB-DFFD-4C08-8F8D-355686A91138</Project>
     </ProjectReference>
-    <ProjectReference Include="C:/dyninst-cmake/dyninst/proccontrol/pcontrol.vcxproj">
-      <Project>A059AF20-439D-499E-B7CD-C9772385AD3C</Project>
+    <ProjectReference Include="C:/scratch/dyninst/instructionAPI/instructionAPI_static.vcxproj">
+      <Project>7BF041C5-C113-4AD8-8756-24EFD28FD21C</Project>
     </ProjectReference>
-    <ProjectReference Include="C:/dyninst-cmake/dyninst/stackwalk/stackwalk.vcxproj">
-      <Project>07E48887-28A5-4E6F-B582-7F813881259D</Project>
+    <ProjectReference Include="C:/scratch/dyninst/parseAPI/parseAPI.vcxproj">
+      <Project>6395C3D5-5100-48FE-A3E3-E4F1765C0AC2</Project>
     </ProjectReference>
-    <ProjectReference Include="C:/dyninst-cmake/dyninst/symtabAPI/symtabAPI.vcxproj">
-      <Project>B74FAC02-F105-45F1-A44F-03A80EDF56A6</Project>
+    <ProjectReference Include="C:/scratch/dyninst/parseAPI/parseAPI_static.vcxproj">
+      <Project>7E07C62E-3A65-4BF3-AC55-052D2FC7720C</Project>
+    </ProjectReference>
+    <ProjectReference Include="C:/scratch/dyninst/patchAPI/patchAPI.vcxproj">
+      <Project>686ECEB9-B86D-4454-B3EE-F18203910557</Project>
+    </ProjectReference>
+    <ProjectReference Include="C:/scratch/dyninst/patchAPI/patchAPI_static.vcxproj">
+      <Project>8AB73C5C-7FCA-4FFD-A5BC-86A04959967D</Project>
+    </ProjectReference>
+    <ProjectReference Include="C:/scratch/dyninst/proccontrol/pcontrol.vcxproj">
+      <Project>82F75E9A-B733-4C5F-95E1-8E4E0A4EE85C</Project>
+    </ProjectReference>
+    <ProjectReference Include="C:/scratch/dyninst/proccontrol/pcontrol_static.vcxproj">
+      <Project>84FE6B78-916F-4F17-82CA-5D39468497F2</Project>
+    </ProjectReference>
+    <ProjectReference Include="C:/scratch/dyninst/stackwalk/stackwalk.vcxproj">
+      <Project>5794030D-D5E9-48FC-BA6D-AB7F9E5B88BD</Project>
+    </ProjectReference>
+    <ProjectReference Include="C:/scratch/dyninst/stackwalk/stackwalk_static.vcxproj">
+      <Project>6948C802-8A38-4287-81FC-B37B2725DE91</Project>
+    </ProjectReference>
+    <ProjectReference Include="C:/scratch/dyninst/symtabAPI/symtabAPI.vcxproj">
+      <Project>D06F2B26-3D9C-4177-AA85-5EA7C61AF9A3</Project>
+    </ProjectReference>
+    <ProjectReference Include="C:/scratch/dyninst/symtabAPI/symtabAPI_static.vcxproj">
+      <Project>48EC0497-6C58-4B92-A858-51168E780807</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
