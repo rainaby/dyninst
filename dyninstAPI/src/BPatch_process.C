@@ -1328,8 +1328,7 @@ bool BPatch_process::hideDebugger()
             "BlockInput",
             funcs, false, false, false, true);
         assert (funcs.size());
-        BPatch_module *rtlib = this->image->findOrCreateModule(
-            (*llproc->runtime_lib.begin())->getModules().front());
+        BPatch_module *rtlib = this->image->findModule("dyninstAPI_RT", true);
         vector<BPatch_function*> repfuncs;
         rtlib->findFunction("DYNINST_FakeBlockInput", repfuncs, false);
         assert(!repfuncs.empty());
@@ -1347,8 +1346,7 @@ bool BPatch_process::hideDebugger()
             "SuspendThread",
             funcs, false, false, false, true);
         assert (funcs.size());
-        BPatch_module *rtlib = this->image->findOrCreateModule(
-            (*llproc->runtime_lib.begin())->getModules().front());
+        BPatch_module *rtlib = this->image->findModule("dyninstAPI_RT", true);
         vector<BPatch_function*> repfuncs;
         rtlib->findFunction("DYNINST_FakeSuspendThread", repfuncs, false);
         assert(!repfuncs.empty());
