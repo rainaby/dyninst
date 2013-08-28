@@ -1969,6 +1969,26 @@ void mapped_object::removeEmptyPages()
     }
 }
 
+static void display_error(long code)
+{
+	char *msg = NULL;
+	cerr << "WARNING: Unable to open registry key HKLM\\CurrentControlSet\\Control\\Session Manager\\Known DLLs\n";
+	cerr << "\tError code: " << code << "\n";
+	if (0 == FormatMessage(
+				FORMAT_MESSAGE_FROM_STRING | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_ALLOCATE_BUFFER,
+				0,
+				code,
+				0,
+				(LPTSTR)&msg,
+				0,
+				NULL)) {
+		cerr << "WARNING: Unable to format error message.\n";
+	} else {
+		cerr << "\tError message: " << msg << "\n";
+		LocalFree(msg);
+	}
+}
+
 bool mapped_object::isSystemLib(const std::string &objname)
 {
    std::string lowname = objname;
@@ -1993,22 +2013,127 @@ bool mapped_object::isSystemLib(const std::string &objname)
 #endif
 
 #if defined(os_windows)
-   if (std::string::npos != lowname.find("windows\\system32\\") &&
-       std::string::npos != lowname.find(".dll"))
-       return true;
-   if (std::string::npos != lowname.find("kernel32.dll"))
-      return true;
-   if (std::string::npos != lowname.find("user32.dll"))
-      return true;
-   if (std::string::npos != lowname.find("advapi32.dll"))
-      return true;
-   if (std::string::npos != lowname.find("ntdll.dll"))
-      return true;
-   if (std::string::npos != lowname.find("msvcrt") &&
-       std::string::npos != lowname.find(".dll"))
-      return true;
-   if (std::string::npos != lowname.find(".dll"))
-       return true; //KEVINTODO: find a reliable way of detecting windows system libraries
+   HKEY hReg = NULL;
+   long result;
+   if (ERROR_SUCCESS != (result = 
+	   RegOpenKeyEx(HKEY_LOCAL_MACHINE,
+					"SYSTEM\\CurrentControlSet\\Control\\Session Manager\\KnownDLLs",
+					0,
+					KEY_READ,
+					&hReg))) {
+		display_error(result); 
+		if (std::string::npos != lowname.find("windows\\system32\\") &&
+			std::string::npos != lowname.find(".dll"))
+			return true;
+
+		if (std::string::npos != lowname.find("kernel32.dll"))
+			return true;
+		if (std::string::npos != lowname.find("user32.dll"))
+			return true;
+		if (std::string::npos != lowname.find("advapi32.dll"))
+			return true;
+		if (std::string::npos != lowname.find("ntdll.dll"))
+			return true;
+		if (std::string::npos != lowname.find("msvcrt") &&
+			std::string::npos != lowname.find(".dll"))
+			return true;
+		if (std::string::npos != lowname.find(".dll"))
+			return true; //KEVINTODO: find a reliable way of detecting windows system libraries*/
+   } else {
+	   if (ERROR_SUCCESS == RegGetValue(
+								hReg,
+								NULL,
+								objname.c_str(),
+								RRF_RT_ANY,
+								NULL,
+								NULL,
+								NULL)) {
+			return true;
+	   } else {
+		   char *sys32dir = NULL;
+		   char *sys64dir = NULL;
+		   DWORD sz = 0;
+		   long result;
+
+		   if (ERROR_SUCCESS != (result = RegGetValue(hReg,
+													  NULL,
+													  "DllDirectory",
+													  RRF_RT_ANY,
+													  NULL,
+													  NULL,
+													  &sz) && sz != 0)) {
+				display_error(result);
+		   } else {
+				   sys32dir = (char *)malloc(sz);
+				   if (ERROR_SUCCESS != (result = RegGetValue(
+											hReg,
+											NULL,
+											"DllDirectory",
+											RRF_RT_ANY,
+											NULL,
+											sys32dir,
+											&sz))) {
+						display_error(result);
+						free(sys32dir);
+						sys32dir = NULL;
+				   } else {
+					   std::string dir = std::string(sys32dir);
+					   std::transform(dir.begin(), dir.end(), dir.begin(), ::tolower);
+					   if (std::string::npos != lowname.find(dir)) {
+						   free(sys32dir);
+						   return true;
+					   }
+					   free(sys32dir);
+				   }
+		   }
+
+		   DWORD bitness;
+		   DWORD szBitness = sizeof(bitness);
+		   if (ERROR_SUCCESS != (result = RegGetValue(HKEY_LOCAL_MACHINE,
+													  "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
+													  "Platform ID",
+													  RRF_RT_ANY,
+													  NULL,
+													  &bitness,
+													  &szBitness))) {
+				display_error(result);
+				return false;
+		   }
+
+		   if (0x20 != bitness) {
+			   if (ERROR_SUCCESS != (result = RegGetValue(hReg,
+													  NULL,
+													  "DllDirectory32",
+													  RRF_RT_ANY,
+													  NULL,
+													  NULL,
+													  &sz) && sz != 0)) {
+					display_error(result);
+				} else {
+				   sys64dir = (char *)malloc(sz);
+				   if (ERROR_SUCCESS != (result = RegGetValue(
+											hReg,
+											NULL,
+											"DllDirectory32",
+											RRF_RT_ANY,
+											NULL,
+											sys64dir,
+											&sz))) {
+						display_error(result);
+						free(sys64dir);
+				   } else {
+					   std::string dir = std::string(sys64dir);
+					   std::transform(dir.begin(), dir.end(), dir.begin(), ::tolower);
+					   if (std::string::npos != lowname.find(dir)) {
+						   free(sys64dir);
+						   return true;
+					   }
+					   free(sys64dir);
+				   }
+			   }
+		   }
+		}
+	}
 #endif
 
    return false;
