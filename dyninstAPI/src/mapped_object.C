@@ -1969,6 +1969,7 @@ void mapped_object::removeEmptyPages()
     }
 }
 
+#if defined(os_windows)
 static void display_error(long code)
 {
 	char *msg = NULL;
@@ -1988,6 +1989,7 @@ static void display_error(long code)
 		LocalFree(msg);
 	}
 }
+#endif
 
 bool mapped_object::isSystemLib(const std::string &objname)
 {
