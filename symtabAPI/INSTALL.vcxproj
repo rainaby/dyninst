@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{D05F992F-E837-4093-88DE-6B7304CF1047}</ProjectGUID>
+    <ProjectGUID>{CDBA4DC2-303B-4DA3-A925-0C211AA885D3}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>Win32</Platform>
     <ProjectName>INSTALL</ProjectName>
@@ -74,7 +74,7 @@
     <PostBuildEvent>
       <Message></Message>
       <Command>setlocal
-"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -DBUILD_TYPE=$(Configuration) -P cmake_install.cmake
+c:\cmake\bin\cmake.exe -DBUILD_TYPE=$(Configuration) -P cmake_install.cmake
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -96,7 +96,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <PostBuildEvent>
       <Message></Message>
       <Command>setlocal
-"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -DBUILD_TYPE=$(Configuration) -P cmake_install.cmake
+c:\cmake\bin\cmake.exe -DBUILD_TYPE=$(Configuration) -P cmake_install.cmake
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -118,7 +118,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <PostBuildEvent>
       <Message></Message>
       <Command>setlocal
-"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -DBUILD_TYPE=$(Configuration) -P cmake_install.cmake
+c:\cmake\bin\cmake.exe -DBUILD_TYPE=$(Configuration) -P cmake_install.cmake
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -140,7 +140,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <PostBuildEvent>
       <Message></Message>
       <Command>setlocal
-"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -DBUILD_TYPE=$(Configuration) -P cmake_install.cmake
+c:\cmake\bin\cmake.exe -DBUILD_TYPE=$(Configuration) -P cmake_install.cmake
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -208,7 +208,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="C:/scratch/dyninst/ALL_BUILD.vcxproj">
-      <Project>29693090-EC61-4A0B-A0A5-CB2DC404D3EF</Project>
+      <Project>10E68807-6615-48CD-BC8F-A35E3A548369</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -42,6 +42,9 @@
 #include <common/src/ntheaders.h>
 #endif
 
+#include "boost/thread/mutex.hpp"
+#include "boost/thread/condition_variable.hpp"
+
 #if !defined(WINAPI)
 #define WINAPI
 #endif
@@ -78,7 +81,7 @@ class COMMON_EXPORT Mutex {
    pthread_mutex_t mutex;
 #else
 #if defined(os_windows)
-   HANDLE mutex;
+   boost::mutex mutex;
 #endif
 #endif
  public:
@@ -94,12 +97,8 @@ class COMMON_EXPORT CondVar {
 #if defined(cap_pthreads)
    pthread_cond_t cond;
 #else
-	int numWaiting;
-	CRITICAL_SECTION numWaitingLock;
-	HANDLE wait_sema;
-	HANDLE wait_done;
-	bool was_broadcast;
-	Mutex sync_cv_ops;
+	boost::condition_variable cond;
+	boost::unique_lock<boost::mutex> *pLock;
 #endif
    Mutex *mutex;
    bool created_mutex;

@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{8FE19D59-63E9-424F-988F-1C3EC39D414E}</ProjectGUID>
+    <ProjectGUID>{38700E8C-0A72-4642-8369-6BD7AC205365}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>Win32</Platform>
     <ProjectName>dyninstAPI</ProjectName>
@@ -93,11 +93,10 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;cap_dynamic_heap;cap_liveness;cap_threads;cap_fixpoint_gen;cap_noaddr_gen;cap_stripped_binaries;cap_tramp_liveness;cap_virtual_registers;cap_mem_emulation;arch_x86;os_windows;i386_unknown_nt4_0;WITH_SYMTAB_API;WITHOUT_SYMLITE;USE_PARSE_API;BPATCH_DLL_BUILD;CMAKE_INTDIR="Debug";dyninstAPI_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;cap_dynamic_heap;cap_liveness;cap_threads;cap_fixpoint_gen;cap_noaddr_gen;cap_stripped_binaries;cap_tramp_liveness;cap_virtual_registers;cap_mem_emulation;arch_x86;os_windows;i386_unknown_nt4_0;WITH_SYMTAB_API;WITHOUT_SYMLITE;USE_PARSE_API;BPATCH_DLL_BUILD;CMAKE_INTDIR="Debug";dyninstAPI_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>Debug</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <ProgramDataBaseFileName>C:/scratch/dyninst/dyninstAPI/Debug/dyninstAPI.pdb</ProgramDataBaseFileName>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;cap_dynamic_heap;cap_liveness;cap_threads;cap_fixpoint_gen;cap_noaddr_gen;cap_stripped_binaries;cap_tramp_liveness;cap_virtual_registers;cap_mem_emulation;arch_x86;os_windows;i386_unknown_nt4_0;WITH_SYMTAB_API;WITHOUT_SYMLITE;USE_PARSE_API;BPATCH_DLL_BUILD;CMAKE_INTDIR=\"Debug\";dyninstAPI_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -114,7 +113,7 @@
     <Link>
       <AdditionalOptions> /machine:X86 /debug %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;..\stackwalk\Debug\stackwalk.lib;..\proccontrol\Debug\pcontrol.lib;..\patchAPI\Debug\patchAPI.lib;..\parseAPI\Debug\parseAPI.lib;..\symtabAPI\Debug\symtabAPI.lib;..\instructionAPI\Debug\instructionAPI.lib;..\common\Debug\common.lib;Psapi.lib;WS2_32.lib;dbghelp.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>c:\boost\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ImportLibrary>C:/scratch/dyninst/dyninstAPI/Debug/dyninstAPI.lib</ImportLibrary>
       <ProgramDataBaseFile>C:/scratch/dyninst/dyninstAPI/Debug/dyninstAPI.pdb</ProgramDataBaseFile>
@@ -262,7 +261,7 @@
     <CustomBuild Include="CMakeLists.txt">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building Custom Rule C:/scratch/dyninst/dyninstAPI/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
-"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\dyninstAPI\CMakeFiles\generate.stamp
+c:\cmake\bin\cmake.exe -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\dyninstAPI\CMakeFiles\generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -275,7 +274,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Building Custom Rule C:/scratch/dyninst/dyninstAPI/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
-"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\dyninstAPI\CMakeFiles\generate.stamp
+c:\cmake\bin\cmake.exe -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\dyninstAPI\CMakeFiles\generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -288,7 +287,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">Building Custom Rule C:/scratch/dyninst/dyninstAPI/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">setlocal
-"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\dyninstAPI\CMakeFiles\generate.stamp
+c:\cmake\bin\cmake.exe -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\dyninstAPI\CMakeFiles\generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -301,7 +300,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Building Custom Rule C:/scratch/dyninst/dyninstAPI/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">setlocal
-"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\dyninstAPI\CMakeFiles\generate.stamp
+c:\cmake\bin\cmake.exe -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\dyninstAPI\CMakeFiles\generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -418,29 +417,29 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="src\MemoryEmulator\memEmulatorWidget.C" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\common\common.vcxproj">
-      <Project>{cd5289c8-db1c-4abb-bafb-2d3c830b30f3}</Project>
+    <ProjectReference Include="C:/scratch/dyninst/ZERO_CHECK.vcxproj">
+      <Project>1422AFC0-B27A-49A1-A20A-12CF95E200CF</Project>
     </ProjectReference>
-    <ProjectReference Include="..\instructionAPI\instructionAPI.vcxproj">
-      <Project>{3f9311eb-30bb-4a27-843c-12a7bc6dc429}</Project>
+    <ProjectReference Include="C:/scratch/dyninst/common/common.vcxproj">
+      <Project>8CBF2C2E-A921-49AB-8BB0-4DEC5AA18E57</Project>
     </ProjectReference>
-    <ProjectReference Include="..\parseAPI\parseAPI.vcxproj">
-      <Project>{a4c47575-e0c2-459e-a6f7-9e7887f054ec}</Project>
+    <ProjectReference Include="C:/scratch/dyninst/instructionAPI/instructionAPI.vcxproj">
+      <Project>12E67117-6770-4E8D-9444-3BBD5CC46D86</Project>
     </ProjectReference>
-    <ProjectReference Include="..\patchAPI\patchAPI.vcxproj">
-      <Project>{019bd409-9457-4b87-bb8d-84d03ee201c7}</Project>
+    <ProjectReference Include="C:/scratch/dyninst/parseAPI/parseAPI.vcxproj">
+      <Project>1856E0A5-72F0-4BCE-9702-D6D02126FE49</Project>
     </ProjectReference>
-    <ProjectReference Include="..\proccontrol\pcontrol.vcxproj">
-      <Project>{fbfcc277-bf9e-436a-be6e-0ca5f1ecb487}</Project>
+    <ProjectReference Include="C:/scratch/dyninst/patchAPI/patchAPI.vcxproj">
+      <Project>01B78C1D-A8ED-4322-86B7-5A86142F803F</Project>
     </ProjectReference>
-    <ProjectReference Include="..\stackwalk\stackwalk.vcxproj">
-      <Project>{7aaf1db5-3906-4e60-a957-5b4b54553d05}</Project>
+    <ProjectReference Include="C:/scratch/dyninst/proccontrol/pcontrol.vcxproj">
+      <Project>FEDCCD73-B0B2-48A4-9BF5-053985307A65</Project>
     </ProjectReference>
-    <ProjectReference Include="..\symtabAPI\symtabAPI.vcxproj">
-      <Project>{5a164b61-82d0-4521-9bcf-38d6d31d1b94}</Project>
+    <ProjectReference Include="C:/scratch/dyninst/stackwalk/stackwalk.vcxproj">
+      <Project>4A6057D5-867A-448F-A071-09B3F9273CC7</Project>
     </ProjectReference>
-    <ProjectReference Include="..\ZERO_CHECK.vcxproj">
-      <Project>{a15e7b25-3ac7-4ef7-ac8a-d88782c96467}</Project>
+    <ProjectReference Include="C:/scratch/dyninst/symtabAPI/symtabAPI.vcxproj">
+      <Project>FF338F1F-8367-4326-8523-BF4A34D8E0BA</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

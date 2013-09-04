@@ -29,6 +29,8 @@
  */
 #include "common/src/dthread.h"
 #include <assert.h>
+#include "boost/thread/mutex.hpp"
+#include "boost/thread/condition_variable.hpp"
 
 DThread::DThread()
 {
@@ -61,113 +63,81 @@ long DThread::id()
 }
 
 
-Mutex::Mutex(bool recursive)
+Mutex::Mutex(bool recursive) :
+	mutex()
 {
-	mutex = ::CreateMutex(NULL, false, NULL);
 }
 
 Mutex::~Mutex()
 {
-	::CloseHandle(mutex);
 }
 
 bool Mutex::lock()
 {
-	return (::WaitForSingleObject(mutex, INFINITE) == WAIT_OBJECT_0);
+	mutex.lock();
+	return true;
 }
 
 bool Mutex::unlock()
 {
-	return ::ReleaseMutex(mutex);
+	mutex.unlock();
+	return true;
 }
 
 CondVar::CondVar(Mutex *m) :
-	numWaiting(0),
-	was_broadcast(false),
 	mutex(m),
-	created_mutex(false)
+	created_mutex(false),
+	cond()
 {
 	if(mutex == NULL)
 	{
 		mutex = new Mutex();
 		created_mutex = true;
 	}
-	wait_sema = ::CreateSemaphore(NULL, 0, 0x7FFFFFFF, NULL);
-	::InitializeCriticalSection(&numWaitingLock);
-	wait_done = ::CreateEvent(NULL, false, false, NULL);
+	pLock = new boost::unique_lock<boost::mutex>(mutex->mutex, boost::defer_lock);
 }
+
 CondVar::~CondVar()
 {
+	delete pLock;
 	if(created_mutex)
 	{
 		delete mutex;
 	}
-	::CloseHandle(wait_sema);
-	::CloseHandle(wait_done);
 }
 
 bool CondVar::unlock()
 {
-	mutex->unlock();
-	return true;
+	try {
+		pLock->unlock();
+		return true;
+	} catch(boost::exception const& e) {
+		return false;
+	}
 }
 bool CondVar::lock()
 {
-	mutex->lock();
-	return true;
+	try {
+		pLock->lock();
+		return true;
+	} catch(boost::exception const& e) {
+		return false;
+	}
 }
 bool CondVar::signal()
 {
-	mutex->lock();
-	::EnterCriticalSection(&numWaitingLock);
-	bool waitingThreads = (numWaiting > 0);
-	::LeaveCriticalSection(&numWaitingLock);
-	if(waitingThreads)
-	{
-		::ReleaseSemaphore(wait_sema, 1, 0);
-	}
-	mutex->unlock();
+	cond.notify_one();
+	
 	return true;
 }
 bool CondVar::broadcast()
 {
-	mutex->lock();
-	::EnterCriticalSection(&numWaitingLock);
-	bool waitingThreads = (numWaiting > 0);
-	was_broadcast = true;
-	if(waitingThreads)
-	{
-		::ReleaseSemaphore(wait_sema, 1, 0);
-		::LeaveCriticalSection(&numWaitingLock);
-		::WaitForSingleObject(wait_done, INFINITE);
-		was_broadcast = false;
-	}
-	else
-	{
-		::LeaveCriticalSection(&numWaitingLock);
-	}
-	mutex->unlock();
+	cond.notify_all();
+
 	return true;
 }
 bool CondVar::wait()
 {
-	mutex->lock();
-	::EnterCriticalSection(&numWaitingLock);
-	numWaiting++;
-	::LeaveCriticalSection(&numWaitingLock);
-	::SignalObjectAndWait(mutex->mutex, wait_sema, INFINITE, FALSE);
-	::EnterCriticalSection(&numWaitingLock);
-	numWaiting--;
-	bool last_waiter = (was_broadcast && (numWaiting == 0));
-	::LeaveCriticalSection(&numWaitingLock);
-	if(last_waiter)
-	{
-		::SignalObjectAndWait(wait_done, mutex->mutex, INFINITE, FALSE);
-	}
-	else
-	{
-		::WaitForSingleObject(mutex->mutex, INFINITE);
-	}
-	mutex->unlock();
+	cond.wait(*pLock);
 	return true;
 }
