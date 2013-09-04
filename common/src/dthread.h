@@ -77,13 +77,9 @@ class COMMON_EXPORT DThread {
 
 class COMMON_EXPORT Mutex {
    friend class CondVar;
-#if defined(cap_pthreads)
-   pthread_mutex_t mutex;
-#else
-#if defined(os_windows)
    boost::mutex mutex;
-#endif
-#endif
+   boost::unique_lock<boost::mutex> _lock;
+
  public:
    Mutex(bool recursive=false);
    ~Mutex();
@@ -94,14 +90,10 @@ class COMMON_EXPORT Mutex {
 };
 
 class COMMON_EXPORT CondVar {
-#if defined(cap_pthreads)
-   pthread_cond_t cond;
-#else
 	boost::condition_variable cond;
-	boost::unique_lock<boost::mutex> *pLock;
-#endif
-   Mutex *mutex;
-   bool created_mutex;
+
+	Mutex *mutex;
+	bool created_mutex;
  public:
    CondVar(Mutex *m = NULL);
    ~CondVar();
