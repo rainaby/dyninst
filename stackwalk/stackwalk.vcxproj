@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{7AAF1DB5-3906-4E60-A957-5B4B54553D05}</ProjectGUID>
+    <ProjectGUID>{4A6057D5-867A-448F-A071-09B3F9273CC7}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>Win32</Platform>
     <ProjectName>stackwalk</ProjectName>
@@ -53,36 +53,35 @@
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup>
-    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\scratch\dyninst\stackwalk\Debug\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stackwalk.dir\Debug\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stackwalk</TargetName>
-    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.dll</TargetExt>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
-    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\scratch\dyninst\stackwalk\Release\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">stackwalk.dir\Release\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">stackwalk</TargetName>
-    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.dll</TargetExt>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
-    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</GenerateManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\scratch\dyninst\stackwalk\MinSizeRel\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">stackwalk.dir\MinSizeRel\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">stackwalk</TargetName>
-    <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">.dll</TargetExt>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkIncremental>
-    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">true</GenerateManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\scratch\dyninst\stackwalk\RelWithDebInfo\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">stackwalk.dir\RelWithDebInfo\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">stackwalk</TargetName>
-    <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">.dll</TargetExt>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">true</LinkIncremental>
-    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">true</GenerateManifest>
-  </PropertyGroup>
+    <PropertyGroup>
+      <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+      <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\scratch\dyninst\stackwalk\Debug\</OutDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stackwalk.dir\Debug\</IntDir>
+      <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stackwalk</TargetName>
+      <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.dll</TargetExt>
+      <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+      <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateManifest>
+      <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\scratch\dyninst\stackwalk\Release\</OutDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">stackwalk.dir\Release\</IntDir>
+      <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">stackwalk</TargetName>
+      <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.dll</TargetExt>
+      <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+      <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</GenerateManifest>
+      <OutDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">C:\scratch\dyninst\stackwalk\MinSizeRel\</OutDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">stackwalk.dir\MinSizeRel\</IntDir>
+      <TargetName Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">stackwalk</TargetName>
+      <TargetExt Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">.dll</TargetExt>
+      <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkIncremental>
+      <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">true</GenerateManifest>
+      <OutDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">C:\scratch\dyninst\stackwalk\RelWithDebInfo\</OutDir>
+      <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">stackwalk.dir\RelWithDebInfo\</IntDir>
+      <TargetName Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">stackwalk</TargetName>
+      <TargetExt Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">.dll</TargetExt>
+      <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">true</LinkIncremental>
+      <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">true</GenerateManifest>
+    </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>C:/Program Files (x86)/Microsoft Visual Studio 11.0/DIA SDK/include;C:/boost;C:/scratch/dyninst;C:/scratch/dyninst/external;C:/scratch/dyninst/common/h;C:/scratch/dyninst/dataflowAPI/h;C:/scratch/dyninst/dyninstAPI/h;C:/scratch/dyninst/dyninstAPI_RT/h;C:/scratch/dyninst/dynutil/h;C:/scratch/dyninst/instructionAPI/h;C:/scratch/dyninst/parseAPI/h;C:/scratch/dyninst/patchAPI/h;C:/scratch/dyninst/proccontrol/h;C:/scratch/dyninst/stackwalk/h;C:/scratch/dyninst/symtabAPI/h;C:/scratch/dyninst/stackwalk/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -93,11 +92,10 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;cap_dynamic_heap;cap_liveness;cap_threads;cap_fixpoint_gen;cap_noaddr_gen;cap_stripped_binaries;cap_tramp_liveness;cap_virtual_registers;cap_mem_emulation;arch_x86;os_windows;i386_unknown_nt4_0;WITH_SYMTAB_API;WITHOUT_SYMLITE;USE_PARSE_API;STACKWALKER_EXPORTS;CMAKE_INTDIR="Debug";stackwalk_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;cap_dynamic_heap;cap_liveness;cap_threads;cap_fixpoint_gen;cap_noaddr_gen;cap_stripped_binaries;cap_tramp_liveness;cap_virtual_registers;cap_mem_emulation;arch_x86;os_windows;i386_unknown_nt4_0;WITH_SYMTAB_API;WITHOUT_SYMLITE;USE_PARSE_API;STACKWALKER_EXPORTS;CMAKE_INTDIR="Debug";stackwalk_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>Debug</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <ProgramDataBaseFileName>C:/scratch/dyninst/stackwalk/Debug/stackwalk.pdb</ProgramDataBaseFileName>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_WINDOWS;cap_dynamic_heap;cap_liveness;cap_threads;cap_fixpoint_gen;cap_noaddr_gen;cap_stripped_binaries;cap_tramp_liveness;cap_virtual_registers;cap_mem_emulation;arch_x86;os_windows;i386_unknown_nt4_0;WITH_SYMTAB_API;WITHOUT_SYMLITE;USE_PARSE_API;STACKWALKER_EXPORTS;CMAKE_INTDIR=\"Debug\";stackwalk_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -119,8 +117,7 @@
       <ImportLibrary>C:/scratch/dyninst/stackwalk/Debug/stackwalk.lib</ImportLibrary>
       <ProgramDataBaseFile>C:/scratch/dyninst/stackwalk/Debug/stackwalk.pdb</ProgramDataBaseFile>
       <SubSystem>Console</SubSystem>
-      <Version>
-      </Version>
+      <Version></Version>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -135,8 +132,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>
-      </DebugInformationFormat>
+      <DebugInformationFormat></DebugInformationFormat>
       <PreprocessorDefinitions>WIN32;_WINDOWS;cap_dynamic_heap;cap_liveness;cap_threads;cap_fixpoint_gen;cap_noaddr_gen;cap_stripped_binaries;cap_tramp_liveness;cap_virtual_registers;cap_mem_emulation;arch_x86;os_windows;i386_unknown_nt4_0;WITH_SYMTAB_API;WITHOUT_SYMLITE;USE_PARSE_API;STACKWALKER_EXPORTS;CMAKE_INTDIR="Release";stackwalk_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>Release</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)</ObjectFileName>
@@ -162,8 +158,7 @@
       <ImportLibrary>C:/scratch/dyninst/stackwalk/Release/stackwalk.lib</ImportLibrary>
       <ProgramDataBaseFile>C:/scratch/dyninst/stackwalk/Release/stackwalk.pdb</ProgramDataBaseFile>
       <SubSystem>Console</SubSystem>
-      <Version>
-      </Version>
+      <Version></Version>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -180,8 +175,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
-      <DebugInformationFormat>
-      </DebugInformationFormat>
+      <DebugInformationFormat></DebugInformationFormat>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;cap_dynamic_heap;cap_liveness;cap_threads;cap_fixpoint_gen;cap_noaddr_gen;cap_stripped_binaries;cap_tramp_liveness;cap_virtual_registers;cap_mem_emulation;arch_x86;os_windows;i386_unknown_nt4_0;WITH_SYMTAB_API;WITHOUT_SYMLITE;USE_PARSE_API;STACKWALKER_EXPORTS;CMAKE_INTDIR="MinSizeRel";stackwalk_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>MinSizeRel</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)</ObjectFileName>
@@ -207,8 +201,7 @@
       <ImportLibrary>C:/scratch/dyninst/stackwalk/MinSizeRel/stackwalk.lib</ImportLibrary>
       <ProgramDataBaseFile>C:/scratch/dyninst/stackwalk/MinSizeRel/stackwalk.pdb</ProgramDataBaseFile>
       <SubSystem>Console</SubSystem>
-      <Version>
-      </Version>
+      <Version></Version>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -251,8 +244,7 @@
       <ImportLibrary>C:/scratch/dyninst/stackwalk/RelWithDebInfo/stackwalk.lib</ImportLibrary>
       <ProgramDataBaseFile>C:/scratch/dyninst/stackwalk/RelWithDebInfo/stackwalk.pdb</ProgramDataBaseFile>
       <SubSystem>Console</SubSystem>
-      <Version>
-      </Version>
+      <Version></Version>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -262,7 +254,7 @@
     <CustomBuild Include="CMakeLists.txt">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building Custom Rule C:/scratch/dyninst/stackwalk/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
-"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\stackwalk\CMakeFiles\generate.stamp
+c:\cmake\bin\cmake.exe -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\stackwalk\CMakeFiles\generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -275,7 +267,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Building Custom Rule C:/scratch/dyninst/stackwalk/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
-"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\stackwalk\CMakeFiles\generate.stamp
+c:\cmake\bin\cmake.exe -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\stackwalk\CMakeFiles\generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -288,7 +280,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">Building Custom Rule C:/scratch/dyninst/stackwalk/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">setlocal
-"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\stackwalk\CMakeFiles\generate.stamp
+c:\cmake\bin\cmake.exe -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\stackwalk\CMakeFiles\generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -301,7 +293,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|Win32'">false</LinkObjects>
       <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">Building Custom Rule C:/scratch/dyninst/stackwalk/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|Win32'">setlocal
-"C:\Program Files (x86)\CMake 2.8\bin\cmake.exe" -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\stackwalk\CMakeFiles\generate.stamp
+c:\cmake\bin\cmake.exe -HC:/scratch/dyninst -BC:/scratch/dyninst --check-stamp-file C:\scratch\dyninst\stackwalk\CMakeFiles\generate.stamp
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -315,37 +307,40 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\frame.C" />
-    <ClCompile Include="src\framestepper.C" />
-    <ClCompile Include="src\swk_errors.C" />
-    <ClCompile Include="src\symlookup.C" />
-    <ClCompile Include="src\walker.C" />
-    <ClCompile Include="src\procstate.C" />
-    <ClCompile Include="src\steppergroup.C" />
-    <ClCompile Include="src\libstate.C" />
-    <ClCompile Include="src\sw_c.C" />
-    <ClCompile Include="src\sw_pcontrol.C" />
-    <ClCompile Include="src\x86-wanderer.C" />
-    <ClCompile Include="src\x86-swk.C" />
-    <ClCompile Include="src\win-x86-swk.C" />
-    <ClCompile Include="src\analysis_stepper.C" />
-    <ClCompile Include="src\callchecker-IAPI.C" />
+    <ClCompile Include="src\frame.C"  />
+    <ClCompile Include="src\framestepper.C"  />
+    <ClCompile Include="src\swk_errors.C"  />
+    <ClCompile Include="src\symlookup.C"  />
+    <ClCompile Include="src\walker.C"  />
+    <ClCompile Include="src\procstate.C"  />
+    <ClCompile Include="src\steppergroup.C"  />
+    <ClCompile Include="src\libstate.C"  />
+    <ClCompile Include="src\sw_c.C"  />
+    <ClCompile Include="src\sw_pcontrol.C"  />
+    <ClCompile Include="src\x86-wanderer.C"  />
+    <ClCompile Include="src\x86-swk.C"  />
+    <ClCompile Include="src\win-x86-swk.C"  />
+    <ClCompile Include="src\analysis_stepper.C"  />
+    <ClCompile Include="src\callchecker-IAPI.C"  />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\common\common.vcxproj">
-      <Project>{cd5289c8-db1c-4abb-bafb-2d3c830b30f3}</Project>
+    <ProjectReference Include="C:/scratch/dyninst/ZERO_CHECK.vcxproj">
+      <Project>1422AFC0-B27A-49A1-A20A-12CF95E200CF</Project>
     </ProjectReference>
-    <ProjectReference Include="..\instructionAPI\instructionAPI.vcxproj">
-      <Project>{3f9311eb-30bb-4a27-843c-12a7bc6dc429}</Project>
+    <ProjectReference Include="C:/scratch/dyninst/common/common.vcxproj">
+      <Project>8CBF2C2E-A921-49AB-8BB0-4DEC5AA18E57</Project>
     </ProjectReference>
-    <ProjectReference Include="..\parseAPI\parseAPI.vcxproj">
-      <Project>{a4c47575-e0c2-459e-a6f7-9e7887f054ec}</Project>
+    <ProjectReference Include="C:/scratch/dyninst/instructionAPI/instructionAPI.vcxproj">
+      <Project>12E67117-6770-4E8D-9444-3BBD5CC46D86</Project>
     </ProjectReference>
-    <ProjectReference Include="..\proccontrol\pcontrol.vcxproj">
-      <Project>{fbfcc277-bf9e-436a-be6e-0ca5f1ecb487}</Project>
+    <ProjectReference Include="C:/scratch/dyninst/parseAPI/parseAPI.vcxproj">
+      <Project>1856E0A5-72F0-4BCE-9702-D6D02126FE49</Project>
     </ProjectReference>
-    <ProjectReference Include="..\ZERO_CHECK.vcxproj">
-      <Project>{a15e7b25-3ac7-4ef7-ac8a-d88782c96467}</Project>
+    <ProjectReference Include="C:/scratch/dyninst/proccontrol/pcontrol.vcxproj">
+      <Project>FEDCCD73-B0B2-48A4-9BF5-053985307A65</Project>
+    </ProjectReference>
+    <ProjectReference Include="C:/scratch/dyninst/symtabAPI/symtabAPI.vcxproj">
+      <Project>FF338F1F-8367-4326-8523-BF4A34D8E0BA</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
