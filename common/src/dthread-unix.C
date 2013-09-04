@@ -29,8 +29,9 @@
  */
 
 #include "common/src/dthread.h"
-#include <pthread.h>
 #include <assert.h>
+#include "boost/thread/mutex.hpp"
+#include "boost/thread/condition_variable.hpp"
 
 DThread::DThread() :
    live(false)
@@ -85,99 +86,74 @@ long DThread::self()
    return (long) pthread_self();
 }
 
-Mutex::Mutex(bool recursive)
+Mutex::Mutex(bool recursive) :
+	mutex()
 {
-   pthread_mutexattr_t attr;
-   pthread_mutexattr_init(&attr);
-   if (recursive) {
-      pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-   }
-   int result = pthread_mutex_init(&mutex, &attr);
-   assert(result == 0);
-
-   pthread_mutexattr_destroy(&attr);
 }
-
-#include <stdio.h>
-#include <errno.h>
-#include <string.h>
-
 
 Mutex::~Mutex()
 {
-   int result = pthread_mutex_destroy(&mutex);
-   assert(result == 0);
 }
 
 bool Mutex::lock()
 {
-   int result = pthread_mutex_lock(&mutex);
-   return (result == 0);
-}
-
-bool Mutex::trylock()
-{
-  int result = pthread_mutex_trylock(&mutex);
-  return (result == 0);
+	mutex.lock();
+	return true;
 }
 
 bool Mutex::unlock()
 {
-   int result = pthread_mutex_unlock(&mutex);
-   return (result == 0);
+	mutex.unlock();
+	return true;
 }
 
-CondVar::CondVar(Mutex *m)
+CondVar::CondVar(Mutex *m) :
+	mutex(m),
+	created_mutex(false),
+	cond()
 {
-   if (!m) {
-      created_mutex = true;
-      mutex = new Mutex();
-   }
-   else {
-      created_mutex = false;
-      mutex = static_cast<Mutex *>(m);
-   }
-   pthread_cond_init(&cond, NULL);
+	if(m == NULL)
+	{
+		mutex = new Mutex();
+		created_mutex = true;
+	}
 }
 
 CondVar::~CondVar()
 {
-   if (created_mutex)
-      delete mutex;
-   int result = pthread_cond_destroy(&cond);
-   assert(result == 0);
+	if(created_mutex)
+	{
+		delete mutex;
+	}
 }
 
 bool CondVar::unlock()
 {
-   return mutex->unlock();
+	mutex->unlock();
+	return true;
 }
 
 bool CondVar::lock()
 {
-   return mutex->lock();
-}
-
-bool CondVar::trylock()
-{
-  return mutex->trylock();
+	mutex->lock();
+	return true;
 }
 
 bool CondVar::signal()
 {
-   int result = pthread_cond_signal(&cond);
-   return result == 0;
+	cond.notify_one();
+	return true;
 }
 
 bool CondVar::broadcast()
 {
-   int result = pthread_cond_broadcast(&cond);
-   return result == 0;
+	cond.notify_all();
+	return true;
 }
 
 bool CondVar::wait()
 {
-   int result = pthread_cond_wait(&cond, &mutex->mutex);
-   return result == 0;
+	boost::unique_lock<boost::mutex> lock(mutex->mutex, boost::adopt_lock);
+	cond.wait(lock);
+	return true;
 }
-
