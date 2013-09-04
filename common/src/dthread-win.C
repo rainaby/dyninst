@@ -94,12 +94,10 @@ CondVar::CondVar(Mutex *m) :
 		mutex = new Mutex();
 		created_mutex = true;
 	}
-	pLock = new boost::unique_lock<boost::mutex>(mutex->mutex, boost::defer_lock);
 }
 
 CondVar::~CondVar()
 {
-	delete pLock;
 	if(created_mutex)
 	{
 		delete mutex;
@@ -108,36 +106,31 @@ CondVar::~CondVar()
 
 bool CondVar::unlock()
 {
-	try {
-		pLock->unlock();
-		return true;
-	} catch(boost::exception const& e) {
-		return false;
-	}
+	mutex->unlock();
+	return true;
 }
+
 bool CondVar::lock()
 {
-	try {
-		pLock->lock();
-		return true;
-	} catch(boost::exception const& e) {
-		return false;
-	}
+	mutex->lock();
+	return true;
 }
+
 bool CondVar::signal()
 {
 	cond.notify_one();
-	
 	return true;
 }
+
 bool CondVar::broadcast()
 {
 	cond.notify_all();
-
 	return true;
 }
+
 bool CondVar::wait()
 {
-	cond.wait(*pLock);
+	boost::unique_lock<boost::mutex> lock(mutex->mutex, boost::adopt_lock);
+	cond.wait(lock);
 	return true;
 }
