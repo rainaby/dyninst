@@ -89,7 +89,7 @@ CondVar::CondVar(Mutex *m) :
 	created_mutex(false),
 	cond()
 {
-	if(mutex == NULL)
+	if(m == NULL)
 	{
 		mutex = new Mutex();
 		created_mutex = true;
