@@ -86,9 +86,30 @@ long DThread::self()
    return (long) pthread_self();
 }
 
-Mutex::Mutex(bool recursive) :
-	mutex()
+#define mutex_visitor(FUN, R) \
+class mutex_ ## FUN ## er \
+    : public boost::static_visitor<R> \
+{ \
+public: \
+\
+    template <typename T> \
+    R operator()( T & operand ) const \
+    {\
+        return operand->FUN();\
+    }\
+\
+}
+
+mutex_visitor(lock, void);
+mutex_visitor(unlock, void);
+mutex_visitor(try_lock, bool);
+
+Mutex::Mutex(bool recursive)
 {
+	if (recursive)
+		mutex = new boost::recursive_mutex();
+	else
+		mutex = new boost::mutex();
 }
 
 Mutex::~Mutex()
@@ -97,25 +118,31 @@ Mutex::~Mutex()
 
 bool Mutex::lock()
 {
-	mutex.lock();
+	boost::apply_visitor(mutex_locker(), mutex);
 	return true;
 }
 
 bool Mutex::unlock()
 {
-	mutex.unlock();
+	boost::apply_visitor(mutex_unlocker(), mutex);
 	return true;
 }
 
+bool Mutex::trylock()
+{
+	return boost::apply_visitor(mutex_try_locker(), mutex);
+}
+
 CondVar::CondVar(Mutex *m) :
-	mutex(m),
-	created_mutex(false),
-	cond()
+	cond(),
+	created_mutex(false)
 {
 	if(m == NULL)
 	{
 		mutex = new Mutex();
 		created_mutex = true;
+	} else {
+		mutex = m;
 	}
 }
 
@@ -139,6 +166,11 @@ bool CondVar::lock()
 	return true;
 }
 
+bool CondVar::trylock()
+{
+	return mutex->trylock();
+}
+
 bool CondVar::signal()
 {
 	cond.notify_one();
@@ -151,9 +183,27 @@ bool CondVar::broadcast()
 	return true;
 }
 
+
+class cond_waiter
+    : public boost::static_visitor<>
+{
+public:
+    cond_waiter(boost::condition_variable_any *cv)
+    {
+        cond = cv;
+    }
+
+    template <typename T>
+    void operator()( T & operand ) const
+    {
+	cond->wait(*operand);
+    }
+private:
+    boost::condition_variable_any *cond;
+};
+
 bool CondVar::wait()
 {
-	boost::unique_lock<boost::mutex> lock(mutex->mutex, boost::adopt_lock);
-	cond.wait(lock);
+	boost::apply_visitor(cond_waiter(&cond), mutex->mutex);
 	return true;
 }

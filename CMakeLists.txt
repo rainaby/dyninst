@@ -157,7 +157,8 @@ file (RELATIVE_PATH REL_INCLUDE_DIR "${INSTALL_CMAKE_DIR}" "${INSTALL_INCLUDE_DI
 #foreach (dir ${HEADER_DIRS})
 #    set (CONF_INCLUDE_DIRS ${CONF_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/${dir}/h)
 #endforeach()
-#configure_file(cmake/DyninstConfig.cmake.in "${PROJECT_BINARY_DIR}/DyninstConfig.cmake" @ONLY)
+
+configure_file(cmake/DyninstConfig.cmake.in "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/DyninstConfig.cmake" @ONLY)
 
 
 # For the install tree

@@ -43,7 +43,9 @@
 #endif
 
 #include "boost/thread/mutex.hpp"
+#include "boost/thread/recursive_mutex.hpp"
 #include "boost/thread/condition_variable.hpp"
+#include "boost/variant.hpp"
 
 #if !defined(WINAPI)
 #define WINAPI
@@ -77,8 +79,8 @@ class COMMON_EXPORT DThread {
 
 class COMMON_EXPORT Mutex {
    friend class CondVar;
-   boost::mutex mutex;
-   boost::unique_lock<boost::mutex> _lock;
+   
+    boost::variant<boost::mutex *, boost::recursive_mutex *> mutex;
 
  public:
    Mutex(bool recursive=false);
@@ -90,7 +92,7 @@ class COMMON_EXPORT Mutex {
 };
 
 class COMMON_EXPORT CondVar {
-	boost::condition_variable cond;
+	boost::condition_variable_any cond;
 
 	Mutex *mutex;
 	bool created_mutex;

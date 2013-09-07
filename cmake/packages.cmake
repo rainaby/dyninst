@@ -30,11 +30,13 @@ message(STATUS "No libdwarf found, attempting to build as external project")
 ExternalProject_Add(LibDwarf
 	PREFIX ${CMAKE_SOURCE_DIR}/libdwarf
 	DEPENDS libelf_imp
-	URL http://reality.sgiweb.org/davea/libdwarf-20130126.tar.gz
+	#URL http://reality.sgiweb.org/davea/libdwarf-20130126.tar.gz
+	URL /p/paradyn/packages/libdwarf-20130207.tar.gz
+	PATCH_COMMAND sed -i -e "s~libdwarf\\.h\\.in~\\$\\{srcdir\\}/libdwarf.h.in~g" <SOURCE_DIR>/libdwarf/configure
 	CONFIGURE_COMMAND CFLAGS=-I${LIBELF_INCLUDE_DIR} LDFLAGS=-L${CMAKE_SOURCE_DIR}/libelf/lib <SOURCE_DIR>/libdwarf/configure --enable-shared
 	BUILD_COMMAND make
 	INSTALL_DIR ${CMAKE_SOURCE_DIR}/libdwarf
-	INSTALL_COMMAND mkdir -p <INSTALL_DIR>/include && mkdir -p <INSTALL_DIR>/lib && install <SOURCE_DIR>/libdwarf/libdwarf.h <INSTALL_DIR>/include && install <SOURCE_DIR>/libdwarf/dwarf.h <INSTALL_DIR>/include && install <BINARY_DIR>/libdwarf.so <INSTALL_DIR>/lib
+	INSTALL_COMMAND mkdir -p <INSTALL_DIR>/include && mkdir -p <INSTALL_DIR>/lib && install <BINARY_DIR>/libdwarf.h <INSTALL_DIR>/include && install <SOURCE_DIR>/libdwarf/dwarf.h <INSTALL_DIR>/include && install <BINARY_DIR>/libdwarf.so <INSTALL_DIR>/lib
 )
 add_dependencies(LibDwarf libelf_imp)
 target_link_libraries(LibDwarf libelf_imp)
