@@ -30,8 +30,6 @@
 
 #include "common/src/dthread.h"
 #include <assert.h>
-#include "boost/thread/mutex.hpp"
-#include "boost/thread/condition_variable.hpp"
 
 DThread::DThread() :
    live(false)
