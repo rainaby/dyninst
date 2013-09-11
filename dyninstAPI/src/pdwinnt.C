@@ -960,7 +960,7 @@ bool OS::executableExists(const std::string &file) {
 
 bool PCProcess::hasPassedMain() 
 {
-   return true;
+   return false;
 }
 
 

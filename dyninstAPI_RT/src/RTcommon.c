@@ -71,9 +71,11 @@ int DYNINSTstaticMode = 1;
 
 HEAP_LOCAL HEAP_TYPE DYNINSTglobalData[SYN_INST_BUF_SIZE/sizeof(HEAP_TYPE)] ALIGN_ATTRIB;
 
+#pragma section("heap",read,write,execute)
+
 #if !defined(target_smallmem)
-HEAP_LOCAL HEAP_TYPE DYNINSTstaticHeap_512K_lowmemHeap_1[512*1024/sizeof(HEAP_TYPE)] ALIGN_ATTRIB;
-HEAP_LOCAL HEAP_TYPE DYNINSTstaticHeap_16M_anyHeap_1[16*1024*1024/sizeof(HEAP_TYPE)] ALIGN_ATTRIB;
+__declspec(allocate("heap")) HEAP_LOCAL HEAP_TYPE DYNINSTstaticHeap_512K_lowmemHeap_1[512*1024/sizeof(HEAP_TYPE)] ALIGN_ATTRIB;
+__declspec(allocate("heap")) HEAP_LOCAL HEAP_TYPE DYNINSTstaticHeap_16M_anyHeap_1[16*1024*1024/sizeof(HEAP_TYPE)] ALIGN_ATTRIB;
 /* These are necessary due to silly C-style 'extern'/linking conventions. */
 const unsigned long sizeOfLowMemHeap1 = sizeof( DYNINSTstaticHeap_512K_lowmemHeap_1 );
 const unsigned long sizeOfAnyHeap1 = sizeof( DYNINSTstaticHeap_16M_anyHeap_1 );

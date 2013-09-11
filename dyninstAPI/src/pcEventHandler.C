@@ -153,7 +153,8 @@ bool PCEventHandler::handle_internal(EventPtr ev) {
         case EventType::UserThreadCreate:
         case EventType::LWPCreate:
         case EventType::ThreadCreate:
-            ret = handleThreadCreate(ev->getEventNewThread(), evProc);
+			if (evProc->isBootstrapped())
+				ret = handleThreadCreate(ev->getEventNewThread(), evProc);
             break;
         case EventType::UserThreadDestroy:
         case EventType::LWPDestroy:
