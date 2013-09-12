@@ -104,9 +104,14 @@ SET_SOURCE_FILES_PROPERTIES(${SRC_LIST} PROPERTIES LANGUAGE CXX)
 ADD_DEFINITIONS(-DCOMMON_LIB)
 
 add_library (common ${SRC_LIST})
-add_library (common_static STATIC ${SRC_LIST})
 FILE (GLOB headers "h/*.h")
-set_target_properties (common common_static PROPERTIES PUBLIC_HEADER "${headers}")
+set_target_properties (common PROPERTIES PUBLIC_HEADER "${headers}")
+
+if(BUILD_STATIC)
+	add_library (common_static STATIC ${SRC_LIST})
+
+	set_target_properties (common_static PROPERTIES PUBLIC_HEADER "${headers}")
+endif()
 
 if (${IBERTY_LIBRARY} MATCHES iberty)
 target_link_libraries (common ${IBERTY_LIBRARY})
@@ -115,9 +120,19 @@ endif()
 if(PLATFORM MATCHES nt OR PLATFORM MATCHES windows)
   target_link_libraries (common Psapi WS2_32 dbghelp)
 endif()
-INSTALL (TARGETS common common_static
+
+INSTALL (TARGETS common
         EXPORT DyninstTargets
 	RUNTIME DESTINATION ${INSTALL_LIB_DIR}
         LIBRARY DESTINATION ${INSTALL_LIB_DIR}
         ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
         PUBLIC_HEADER DESTINATION ${INSTALL_INCLUDE_DIR})
+
+if(BUILD_STATIC)
+	INSTALL (TARGETS common_static
+		EXPORT DyninstTargets
+		RUNTIME DESTINATION ${INSTALL_LIB_DIR}
+		LIBRARY DESTINATION ${INSTALL_LIB_DIR}
+		ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
+		PUBLIC_HEADER DESTINATION ${INSTALL_INCLUDE_DIR})
+endif()

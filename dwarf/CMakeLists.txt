@@ -17,16 +17,26 @@ set (SRC_LIST
   )
 
 add_library (dynDwarf ${SRC_LIST})
-add_library (dynDwarf_static STATIC ${SRC_LIST})
 target_link_libraries (dynDwarf ${LIBDWARF_LIBRARIES})
 
 FILE (GLOB headers "h/*.h")
-set_target_properties (dynDwarf dynDwarf_static PROPERTIES PUBLIC_HEADER "${headers}")
+set_target_properties (dynDwarf PROPERTIES PUBLIC_HEADER "${headers}")
 
-INSTALL (TARGETS dynDwarf dynDwarf_static
+INSTALL (TARGETS dynDwarf
         EXPORT DyninstTargets
         RUNTIME DESTINATION ${INSTALL_LIB_DIR}
         LIBRARY DESTINATION ${INSTALL_LIB_DIR}
         ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
         PUBLIC_HEADER DESTINATION ${INSTALL_INCLUDE_DIR})
 
+if(BUILD_STATIC)
+	add_library (dynDwarf_static STATIC ${SRC_LIST})
+	set_target_properties (dynDwarf_static PROPERTIES PUBLIC_HEADER "${headers}")
+
+	INSTALL (TARGETS dynDwarf_static
+		EXPORT DyninstTargets
+		RUNTIME DESTINATION ${INSTALL_LIB_DIR}
+		LIBRARY DESTINATION ${INSTALL_LIB_DIR}
+		ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
+		PUBLIC_HEADER DESTINATION ${INSTALL_INCLUDE_DIR})
+endif()

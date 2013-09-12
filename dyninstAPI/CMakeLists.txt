@@ -185,11 +185,21 @@ target_link_libraries (dyninstAPI pthread)
 endif()
 
 FILE (GLOB headers "h/*.h")
-set_target_properties (dyninstAPI dyninstAPI_static PROPERTIES PUBLIC_HEADER "${headers}")
+set_target_properties (dyninstAPI PROPERTIES PUBLIC_HEADER "${headers}")
 
-INSTALL (TARGETS dyninstAPI dyninstAPI_static
+INSTALL (TARGETS dyninstAPI
         EXPORT DyninstTargets
         RUNTIME DESTINATION ${INSTALL_LIB_DIR}
         LIBRARY DESTINATION ${INSTALL_LIB_DIR}
         ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
         PUBLIC_HEADER DESTINATION ${INSTALL_INCLUDE_DIR})
+
+if(BUILD_STATIC)
+	set_target_properties (dyninstAPI_static PROPERTIES PUBLIC_HEADER "${headers}")
+	INSTALL (TARGETS dyninstAPI_static
+		EXPORT DyninstTargets
+		RUNTIME DESTINATION ${INSTALL_LIB_DIR}
+		LIBRARY DESTINATION ${INSTALL_LIB_DIR}
+		ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
+		PUBLIC_HEADER DESTINATION ${INSTALL_INCLUDE_DIR})
+endif()

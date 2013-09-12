@@ -81,7 +81,6 @@ ADD_DEFINITIONS(-DPARSER_LIB)
 ADD_DEFINITIONS(-DDATAFLOW_LIB)
 
 add_library (parseAPI ${SRC_LIST})
-add_library (parseAPI_static STATIC ${SRC_LIST})
 target_link_libraries(parseAPI common)
 target_link_libraries(parseAPI instructionAPI)
 
@@ -96,12 +95,23 @@ target_link_libraries(parseAPI symtabAPI)
 endif()
 
 FILE (GLOB headers "h/*.h")
-set_target_properties (parseAPI parseAPI_static PROPERTIES PUBLIC_HEADER "${headers}")
+set_target_properties (parseAPI PROPERTIES PUBLIC_HEADER "${headers}")
 
 
-INSTALL (TARGETS parseAPI parseAPI_static
+INSTALL (TARGETS parseAPI
         EXPORT DyninstTargets
         RUNTIME DESTINATION ${INSTALL_LIB_DIR}
         LIBRARY DESTINATION ${INSTALL_LIB_DIR}
         ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
         PUBLIC_HEADER DESTINATION ${INSTALL_INCLUDE_DIR})
+
+if(BUILD_STATIC)
+	add_library (parseAPI_static STATIC ${SRC_LIST})
+	set_target_properties (parseAPI_static PROPERTIES PUBLIC_HEADER "${headers}")
+	INSTALL (TARGETS parseAPI_static
+		EXPORT DyninstTargets
+		RUNTIME DESTINATION ${INSTALL_LIB_DIR}
+		LIBRARY DESTINATION ${INSTALL_LIB_DIR}
+		ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
+		PUBLIC_HEADER DESTINATION ${INSTALL_INCLUDE_DIR})
+endif()
