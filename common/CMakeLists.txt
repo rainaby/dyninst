@@ -93,6 +93,7 @@ if (PLATFORM MATCHES nt OR PLATFORM MATCHES windows)
     src/timing-nt.C
     src/dthread-win.C
     src/addrtranslate-win.C
+    ${Boost_THREAD_LIBRARY}
   )
   add_definitions(-DWIN32 -D_WIN32_WINNT=0x500 -Dsnprintf=_snprintf)
 endif()  

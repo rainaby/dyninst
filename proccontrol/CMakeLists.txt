@@ -87,6 +87,7 @@ target_link_libraries(pcontrol common)
 if (UNIX)
 target_link_libraries(pcontrol dynElf)
 target_link_libraries(pcontrol symLite)
+set (SRC_LIST ${SRC_LIST} ${Boost_THREAD_LIBRARY})
 endif()
 
 if(WIN32)
