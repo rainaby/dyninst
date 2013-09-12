@@ -30,6 +30,10 @@ include (cmake/warnings.cmake)
 include (cmake/options.cmake)
 include (cmake/optimization.cmake)
 
+if(EXISTS "cmake/local_overrides.cmake")
+	include (cmake/local_overrides.cmake)
+endif()
+
 set (BUILD_SHARED_LIBS ON)
 
 set (INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
