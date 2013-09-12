@@ -91,12 +91,6 @@ Makefile
 *log.*
 *.rej
 install_manifest.txt
-/common/*.vcxproj
-/dyninstAPI/*.vcxproj
-/instructionAPI/*.vcxproj
-/parseAPI/*.vcxproj
-/patchAPI/*.vcxproj
-/proccontrol/*.vcxproj
-/scratch/test1/TEST_SETUP/*.vcxproj
-/stackwalk/*.vcxproj
-/symtabAPI/*.vcxproj
+*.vcxproj
+*.vcproj
+*.sln
