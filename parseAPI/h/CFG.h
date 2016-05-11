@@ -52,6 +52,10 @@ namespace Dyninst {
       typedef boost::shared_ptr<Instruction> InstructionPtr;
    }
 
+   namespace InsnAdapter {
+       class IA_IAPI;
+   }
+
 namespace ParseAPI {
 
 class LoopAnalyzer;
@@ -178,10 +182,10 @@ class PARSER_EXPORT Edge : public allocatable {
         return static_cast<EdgeTypeEnum>(_type._type_enum); 
     }
     bool sinkEdge() const { return _type._sink != 0; }
-    bool interproc() const { 
-       return (_type._interproc != 0 ||
-               type() == CALL ||
-               type() == RET);
+    bool interproc() const {
+        return (_type._interproc != 0 ||
+            type() == CALL ||
+            type() == RET);
     }
 
     bool intraproc() const {
@@ -438,6 +442,7 @@ class LoopTreeNode;
 class PARSER_EXPORT Function : public allocatable, public AnnotatableSparse {
    friend class CFGModifier;
    friend class LoopAnalyzer;
+   friend class Dyninst::InsnAdapter::IA_IAPI;
  protected:
     Address _start;
     CodeObject * _obj;
@@ -489,6 +494,10 @@ class PARSER_EXPORT Function : public allocatable, public AnnotatableSparse {
     FuncReturnStatus retstatus() const { return _rs; }
     Block * entry() const { return _entry; }
     bool parsed() const { return _parsed; }
+
+    // [DEF-TODO] see incomplete parsing notes in primer.
+    bool incompleteParse() const { return incompleteParse_; }
+    void incompleteParse(bool b) { incompleteParse_ = b; }
 
     /* Basic block and CFG access */
     blocklist blocks();
@@ -557,6 +566,10 @@ class PARSER_EXPORT Function : public allocatable, public AnnotatableSparse {
 
     static void destroy(Function *f);
 
+ protected:
+     /* rapid lookup for edge predicate tests */
+     blocklist blocks_int();
+
  private:
     void delayed_link_return(CodeObject * co, Block * retblk);
     void finalize();
@@ -565,9 +578,6 @@ class PARSER_EXPORT Function : public allocatable, public AnnotatableSparse {
     bool _cache_valid;
     //    blocklist _bl;
     std::vector<FuncExtent *> _extents;
-
-    /* rapid lookup for edge predicate tests */
-    blocklist blocks_int();
     
     blockmap _bmap;
     bmap_iterator blocks_begin() {
@@ -614,6 +624,7 @@ class PARSER_EXPORT Function : public allocatable, public AnnotatableSparse {
     }
 
     /* function details */
+    bool incompleteParse_;
     bool _no_stack_frame;
     bool _saves_fp;
     bool _cleans_stack;

@@ -89,7 +89,7 @@ class IA_IAPI : public InstructionAdapter {
         virtual InstrumentableLevel getInstLevel(Dyninst::ParseAPI::Function *, unsigned int num_insns ) const;
         virtual bool isDynamicCall() const;
         virtual bool isAbsoluteCall() const;
-        virtual bool simulateJump() const;
+        virtual bool simulateJump(Dyninst::ParseAPI::Function* func = nullptr) const;
         virtual void advance();
         virtual bool retreat();
         virtual bool isNop() const;
@@ -113,6 +113,8 @@ class IA_IAPI : public InstructionAdapter {
         virtual bool isReturnAddrSave(Address &ret_addr) const;
         virtual bool isNopJump() const;
         virtual bool sliceReturn(ParseAPI::Block* bit, Address ret_addr, ParseAPI::Function * func) const;
+        bool isIatCall(dyn_hash_map<Address, std::string>& iat, Address& targLoc) const;
+        // [DEF-TODO] cna we delete this second one?
         bool isIATcall(std::string &calleeName) const;
         virtual bool isThunk() const;
 	virtual bool isIndirectJump() const;
@@ -125,7 +127,7 @@ private:
         bool isIPRelativeBranch() const;
         bool isFrameSetupInsn(Dyninst::InstructionAPI::Instruction::Ptr i) const;
         virtual bool isReturn(Dyninst::ParseAPI::Function *, Dyninst::ParseAPI::Block* currBlk) const;
-        bool isFakeCall() const;
+        bool isFakeCall(Dyninst::ParseAPI::Function* func) const;
         bool isLinkerStub() const;
 	bool isSysEnter() const;
 	void parseSyscall(std::vector<std::pair<Address, Dyninst::ParseAPI::EdgeTypeEnum> >& outEdges) const;

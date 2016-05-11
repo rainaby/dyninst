@@ -558,7 +558,7 @@ void IA_IAPI::getNewEdges(std::vector<std::pair< Address, EdgeTypeEnum> >& outEd
             if ( ! isRealCall() )
                 callEdge = false;
 
-            if ( simulateJump() ) 
+            if ( simulateJump(context) )
             {
                 outEdges.push_back(std::make_pair(target, DIRECT));
                 callEdge = false;
@@ -570,9 +570,12 @@ void IA_IAPI::getNewEdges(std::vector<std::pair< Address, EdgeTypeEnum> >& outEd
         {
             if (!success || isDynamicCall()) 
             {
-                std::string empty;
-               if ( ! isIATcall(empty) )
+                // note, this removes fallthrough edges from indirect calls
+                // in defensive mode if they do not use the iat, and this
+                // changes target to equal the rva of the import address.
+                if (!isIatCall(*plt_entries, target)) {
                     ftEdge = false;
+                }
             }
             else if ( ! _isrc->isValidAddress(target) )
             {
@@ -822,13 +825,16 @@ bool IA_IAPI::isConditional() const
     return curInsn()->allowsFallThrough();
 }
 
-bool IA_IAPI::simulateJump() const
+// returns true if the current instruction (a call instruction) simulates
+// a jump isntruction. in other words, this just calls isFakeCall.
+// func is the containing function.
+bool IA_IAPI::simulateJump(Function* func) const
 {
     // obfuscated programs simulate jumps by calling into a block that 
     // discards the return address from the stack, we check for these
     // fake calls in malware mode
     if (_obj->defensiveMode() && !isDynamicCall()) {
-        return isFakeCall();
+        return isFakeCall(func);
     }
     // TODO: we don't simulate jumps on x86 architectures; add logic as we need it.                
     return false;

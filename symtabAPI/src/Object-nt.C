@@ -57,7 +57,7 @@
 
 #include "common/src/headers.h"
 
-#if defined(_MSC_VER)
+#if (defined(_MSC_VER) && _MSC_VER < 1900)
 #define snprintf _snprintf
 #endif
 
@@ -543,6 +543,7 @@ void Object::ParseGlobalSymbol(PSYMBOL_INFO pSymInfo)
     } 
 }
    
+// callback used by windows API to enumerate symbols in a binary file.
 BOOL CALLBACK SymEnumSymbolsCallback( PSYMBOL_INFO pSymInfo,
 										ULONG symSize,
 										PVOID userContext )
@@ -551,29 +552,23 @@ BOOL CALLBACK SymEnumSymbolsCallback( PSYMBOL_INFO pSymInfo,
 	Object* obj = (Object*) userContext;
 	assert( obj != NULL );
 
-#if 0
-	if(pSymInfo->Name && (strcmp(pSymInfo->Name, "test1_1_func1_1") == 0))
-	fprintf(stderr, "symEnumSymsCallback, %s, Flags:0x%x, Tag:0x%x, Type:%d, Addr:0x%x...\n",
+    Offset la = obj->getLoadAddress();
+    Offset addr = pSymInfo->Address;
+    Offset diff = addr - la;
+	/*
+	fprintf(stderr, "symEnumSymsCallback, %s, Flags:0x%x, Tag:0x%x, Type:%d, Addr:0x%x, Base:0x%x\n",
 		   pSymInfo->Name,
 	   pSymInfo->Flags,
 	   pSymInfo->Tag,
 	   pSymInfo->TypeIndex,
-	   pSymInfo->Address);
-#endif
+	   pSymInfo->Address,
+       obj->getLoadAddress());
+    */
 
    if (isGlobalSymbol(pSymInfo))
    {
       obj->ParseGlobalSymbol(pSymInfo);
    }
-   else if ((pSymInfo->Flags & SYMFLAG_LOCAL) ||
-	    (pSymInfo->Flags & SYMFLAG_PARAMETER)) {
-      //parsing_printf("Is a local variable\n");
-      //obj->ParseLocalSymbol(pSymInfo);
-   }
-   else {
-      //parsing_printf(" skipping\n");
-   }
-   // keep enumerating symbols
    return TRUE;
 }
 
@@ -750,6 +745,75 @@ Region::RegionType getRegionType(DWORD flags){
         return Region::RT_OTHER;
 }
 
+// get relocation information (IAT) from binaries.
+bool Object::get_relocation_entries() {
+    assert(sizeof(Offset) == getAddressWidth());
+    void* imageBase = mf->base_addr();
+    auto idt = getImportDescriptorTable();
+    int numImportMods = 0;
+    int numBadMods = 0;
+    int numBadEntries = 0;
+    int numOrdinalEntries = 0;
+    int numNamedEntries = 0;
+    for (auto dit = idt.begin(); dit != idt.end(); ++dit) {
+      ++numImportMods;
+      DWORD iatRva = dit->second.FirstThunk;
+      DWORD iitRva = dit->second.OriginalFirstThunk;
+      if (iitRva == 0) {
+          iitRva = iatRva;
+      }
+      auto iatArray = (DWORD*) ::ImageRvaToVa(peHdr, imageBase, iatRva, NULL);
+      auto iitArray = (DWORD*) ::ImageRvaToVa(peHdr, imageBase, iitRva, NULL);
+      if (iatArray == NULL || iitArray == NULL) {
+          ++numBadMods;
+          std::cerr << "[" << FILE__ << ":" << __LINE__
+              << "] bad import table for module " << dit->first << std::endl;
+          continue;
+      }
+
+      for (unsigned idx = 0; iatArray[idx] != 0; ++idx) {
+         DWORD entryRva = dit->second.FirstThunk + sizeof(Offset) * idx;
+         DWORD importRva = iitArray[idx];
+         if (importRva & 0x80000000) {
+             ++numOrdinalEntries;
+             fbt_.push_back(relocationEntry(entryRva, 0, "<ordinal>", NULL, 0));
+             continue;
+         }
+         auto importByName = (IMAGE_IMPORT_BY_NAME*) ::ImageRvaToVa(peHdr,
+             imageBase, importRva, NULL);
+         if (importByName == NULL) {
+             ++numBadEntries;
+             std::cerr << "[" << FILE__ << ":" << __LINE__ << "] bad import address "
+                 << (void*)importRva << " at " << (void*)entryRva << " index " << idx
+                 << std::endl;
+             continue;
+         }
+         
+         ++numNamedEntries;
+         fbt_.push_back(relocationEntry(entryRva, 0,
+             std::string((char*)importByName->Name), NULL, 0));
+      }
+    }
+
+    fprintf(stderr, "[%s:%d] relocation entries for %s; %d mods -- %d bad; "
+        "%d ordinals, %d named, %d bad\n", FILE__, __LINE__,
+		mf->filename().c_str(), numImportMods, numBadMods, numOrdinalEntries,
+	    numNamedEntries, numBadEntries);
+
+	return numOrdinalEntries + numNamedEntries > 0;
+}
+
+// our representation of the IAT.
+bool Object::get_func_binding_table(std::vector<relocationEntry>& fbt) const {
+    fbt = fbt_;
+    return true;
+}
+
+bool Object::get_func_binding_table_ptr(const std::vector<relocationEntry>*& fbt) const {
+    fbt = &fbt_;
+    return true;
+}
+
 std::vector<std::pair<string, IMAGE_IMPORT_DESCRIPTOR> > & Object::getImportDescriptorTable()
 {
    if (!idt_.empty()) {
@@ -924,10 +988,10 @@ void Object::FindInterestingSections(bool alloc_syms, bool defensive)
        prov_end = prov_begin + secSize;
        regions_.push_back(
            new Region(
-            0, "PROGRAM_HEADER", 0, peHdr->OptionalHeader.SizeOfHeaders, 
-            0, secSize, (char*)mapAddr,
-            getRegionPerms(IMAGE_SCN_MEM_EXECUTE | IMAGE_SCN_MEM_WRITE), 
-            getRegionType(IMAGE_SCN_CNT_CODE | IMAGE_SCN_CNT_INITIALIZED_DATA),
+               0, "PROGRAM_HEADER", 0, peHdr->OptionalHeader.SizeOfHeaders,
+               0, secSize, (char*)mapAddr,
+               getRegionPerms(IMAGE_SCN_MEM_READ),
+               getRegionType(IMAGE_SCN_CNT_INITIALIZED_DATA),
             true));
    }
 
@@ -965,6 +1029,7 @@ void Object::FindInterestingSections(bool alloc_syms, bool defensive)
 //                                      pScnHdr->Misc.VirtualSize, 
 //                                      rawDataPtr));
 
+
       if( strncmp( (const char*)pScnHdr->Name, ".text", 8 ) == 0 ) {
          // note that section numbers are one-based
          textSectionId = i + 1;
@@ -999,6 +1064,7 @@ void Object::FindInterestingSections(bool alloc_syms, bool defensive)
          data_off_    = pScnHdr->VirtualAddress;
          data_len_ = (pScnHdr->SizeOfRawData < pScnHdr->Misc.VirtualSize ?
                       pScnHdr->SizeOfRawData : pScnHdr->Misc.VirtualSize);
+         // [DEF-TODO] why do we want to parse data in defensive mode?
          if (defensive) { // don't parse .data in a non-defensive binary
              if (prov_begin == -1) {
                 prov_begin = data_off_;
@@ -1031,7 +1097,10 @@ void Object::FindInterestingSections(bool alloc_syms, bool defensive)
       pScnHdr += 1;
    } // end section for loop
 
-   if (-1 == code_len_ || defensive) {
+   // [DEF-TODO] this cancels out the effects above of parsing data.
+   // see section types in the primer.
+   //if (-1 == code_len_ || defensive) {
+   if (code_len_ == -1) {
        // choose the smaller/larger of the two offsets/lengths, 
        // if both are initialized (i.e., are not equal to -1)
        if (code_off_ == -1)
@@ -1051,7 +1120,7 @@ void Object::FindInterestingSections(bool alloc_syms, bool defensive)
 }
 
 // Assumes region list is sorted and regions don't overlap
-Region *Object::findEnclosingRegion(const Offset where)
+Region *Object::findEnclosingRegion(const Offset where) const
 {
     // search for "where" in regions (regions must not overlap)
     int first = 0; 
@@ -1101,7 +1170,9 @@ bool Object::getCatchBlock(ExceptionBlock &b, Offset addr,
 
 bool Object::isText( const Offset addr ) const 
 {
-   return( addr >= code_off_ && addr < code_off_ + code_len_ );
+    // switched to use region types rather than offsets.
+    auto type = findEnclosingRegion(addr)->getRegionType();
+    return type == Region::RT_TEXT || type == Region::RT_TEXTDATA;
 }
 
 void fixup_filename(std::string &filename)
@@ -1140,6 +1211,7 @@ Object::Object(MappedFile *mf_,
       AddTLSFunctions();
    }
    ParseSymbolInfo(alloc_syms);
+   get_relocation_entries();
    preferedBase = imageBase;
    rebase(0);
 }

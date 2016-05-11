@@ -227,6 +227,11 @@ class Object : public AObject
     SYMTAB_EXPORT void addReference(Offset, std::string, std::string);
     SYMTAB_EXPORT std::map<std::string, std::map<Offset, std::string> > & getRefs() { return ref; }
 
+    // IAT functions.
+    bool get_func_binding_table(std::vector<relocationEntry>& fbt) const;
+    bool get_func_binding_table_ptr(const std::vector<relocationEntry>*& fbtptr) const;
+    bool get_relocation_entries();
+
     std::vector<std::pair<std::string, IMAGE_IMPORT_DESCRIPTOR> > & getImportDescriptorTable();
     std::map<std::string, std::map<std::string, WORD> > & getHintNameTable();
     PIMAGE_NT_HEADERS getPEHdr() { return peHdr; }
@@ -246,9 +251,12 @@ private:
     }
     
     SYMTAB_EXPORT void    FindInterestingSections( bool, bool );
-    Region *          findEnclosingRegion(const Offset where);
+    Region *          findEnclosingRegion(const Offset where) const;
     void AddTLSFunctions();
 	DWORD* get_dword_ptr(Offset rva);
+
+    std::vector<relocationEntry> fbt_;
+
     Offset baseAddr;     // location of this object in mutatee address space
 
 	Offset preferedBase; // Virtual address at which the binary is prefered to be loaded

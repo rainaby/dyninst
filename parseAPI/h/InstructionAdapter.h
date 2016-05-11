@@ -91,7 +91,8 @@ class InstructionAdapter
     virtual bool hasUnresolvedControlFlow(ParseAPI::Function* context, unsigned int num_insns)
 const;
     virtual bool isNopJump() const { return false; }
-    virtual bool simulateJump() const= 0;
+    // func is containing function.
+    virtual bool simulateJump(ParseAPI::Function* func = nullptr) const= 0;
     virtual void advance() = 0;
     virtual bool retreat() = 0;
     virtual bool isNop() const = 0;

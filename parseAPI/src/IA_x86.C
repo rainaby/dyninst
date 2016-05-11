@@ -457,10 +457,9 @@ bool IA_IAPI::sliceReturn(ParseAPI::Block* /*bit*/, Address /*ret_addr*/, ParseA
  * -a block not ending in a return instruction that pops the return address 
  *  off of the stack
  */
-bool IA_IAPI::isFakeCall() const
+bool IA_IAPI::isFakeCall(Dyninst::ParseAPI::Function* func) const
 {
     assert(_obj->defensiveMode());
-
     if (isDynamicCall()) {
         return false;
     }
@@ -471,6 +470,19 @@ bool IA_IAPI::isFakeCall() const
     boost::tie(valid, entry) = getCFT();
 
     if (!valid) return false;
+
+    // [DEF-TODO] this is the new check if the target is in the same function.
+    // this should probably be removed, and the interfaces for isFakeCall
+    // and simulateJump may need to be reverted to their original versions
+    // (or something entirely new). 
+    if (func != nullptr) {
+        auto blocks = func->blocks_int();
+        for (auto blk = blocks.begin(); blk != blocks.end(); ++blk) {
+            if ((*blk)->start() == entry) {
+                return true;
+            }
+        }
+    }
 
     if (! _cr->contains(entry) ) {
        return false;
@@ -682,6 +694,39 @@ bool IA_IAPI::isFakeCall() const
     return false;
 }
 
+// new IAT call detection. returns true if the current instruction is an indirect
+// call to an entry in the IAT.
+bool IA_IAPI::isIatCall(dyn_hash_map<Address, std::string>& iat,
+        Address& targLocation) const {
+    if (!isDynamicCall() || !curInsn()->readsMemory()) {
+        return false;
+    }
+
+    std::set<Expression::Ptr> memReads;
+    curInsn()->getMemoryReadOperands(memReads);
+    if (memReads.size() != 1) {
+        return false;
+    }
+
+    Result memref = (*memReads.begin())->eval();
+    if (!memref.defined) {
+        return false;
+    }
+    Address entryAddr = memref.convert<Address>();
+
+    // convert to a relative address
+    if (_obj->cs()->loadAddress() < entryAddr) {
+        entryAddr -= _obj->cs()->loadAddress();
+    }
+
+    if (HASHDEF(iat, entryAddr)) {
+        targLocation = entryAddr;
+        return true;
+    }
+    return false;
+}
+
+// [DEF-TODO] old IAT call detection. is this safe to delete?
 bool IA_IAPI::isIATcall(std::string &calleeName) const
 {
     if (!isDynamicCall()) {

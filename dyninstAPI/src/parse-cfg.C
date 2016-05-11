@@ -485,10 +485,14 @@ void parse_func::setinit_retstatus(ParseAPI::FuncReturnStatus rs)
 }
 ParseAPI::FuncReturnStatus parse_func::init_retstatus() const
 {
-    if (UNSET == init_retstatus_) {
+    // [DEF-TODO] see incomplete parse notes in primer.
+    if (UNSET == init_retstatus_ && !incompleteParse()) {
         assert(!obj()->defensiveMode()); // should have been set for defensive binaries
         return retstatus();
     }
+
+    if (init_retstatus_ == UNSET) { return retstatus(); }
+
     if (init_retstatus_ > retstatus()) {
         return retstatus();
     }
@@ -566,6 +570,13 @@ bool parse_func::hasUnresolvedCF() {
 }
 
 bool parse_func::isInstrumentable() {
+	// abrupt-ends are marked as unresolved control-flow. thus
+    // the only way to instrument such functions is to mark all
+    // functions as instrumentable in defensive mode. plus,
+    // defensive mode should be able to handle anything (that's the goal).
+	if (obj()->defensiveMode()) {
+		return true;
+	}
 #if defined(os_vxworks)
    // Relocatable objects (kernel modules) are instrumentable on VxWorks.
    if(!isInstrumentableByFunctionName())

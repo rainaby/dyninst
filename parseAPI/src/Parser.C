@@ -294,7 +294,9 @@ Parser::parse_edges( vector< ParseWorkElem * > & work_elems )
         ParseWorkElem *elem = work_elems[idx];
         Block *src = elem->edge()->src();
 
-        if (elem->order() == ParseWorkElem::call_fallthrough)
+        // [DEF-TODO] see checked fallthrough in the primer.
+        if (elem->order() == ParseWorkElem::call_fallthrough ||
+            elem->order() == ParseWorkElem::checked_call_ft)
         {
             Edge *callEdge = NULL;
             Block::edgelist trgs = src->targets();
@@ -358,6 +360,10 @@ Parser::parse_edges( vector< ParseWorkElem * > & work_elems )
             }
             isNewFrame = true;
         }
+
+        // [DEF-TODO] see incomplete parsing the primer.
+        // reset incompleteness of frame.
+        frame->func->incompleteParse(false);
 
         // push before frame init so no seed is added
         if (elem->bundle()) {
@@ -938,7 +944,8 @@ Parser::parse_frame(ParseFrame & frame, bool recursive) {
             }
 
             continue;
-        } else if (work->order() == ParseWorkElem::call_fallthrough) {
+        // [DEF-TODO] see checked fallthrough in the primer. running checked here.
+        } else if (work->order() == ParseWorkElem::call_fallthrough || work->order() == ParseWorkElem::checked_call_ft) {
             // check associated call edge's return status
             Edge * ce = bundle_call_edge(work->bundle());
             if (!ce) {
@@ -982,11 +989,18 @@ Parser::parse_frame(ParseFrame & frame, bool recursive) {
                     }
                 } else {
                     Address target = ce->trg()->start();
+                    if (ce->sinkEdge()) {
+                        auto callElement = work->bundle()->elems()[0];
+                        assert(callElement->order() == ParseWorkElem::call);
+                        target = callElement->target();
+                        parsing_printf("[%s:%d] pulling target from work was %x now %x ", FILE__, __LINE__, ce->trg()->start(), target);
+                    }
                     Function * ct = _parse_data->findFunc(frame.codereg,target);
                     bool is_plt = false;
 
-                    // check if associated call edge's return status is still unknown
-                    if (ct && (ct->_rs == UNSET) ) {
+                    // [DEF-TODO] see incomplete parsing the primer.
+                    // check if associated call edge's return status is still unknown.
+                    if (ct && (ct->_rs == UNSET && !ct->incompleteParse()) ) {
                         // Delay parsing until we've finished the corresponding call edge
                         parsing_printf("[%s] Parsing FT edge %lx, corresponding callee (%s) return status unknown; delaying work\n",
                                 __FILE__,
@@ -1022,6 +1036,7 @@ Parser::parse_frame(ParseFrame & frame, bool recursive) {
                     }
                     // Call-stack tampering tests
                     if (unlikely(!is_nonret && frame.func->obj()->defensiveMode() && ct)) {
+                        // [DEF-TODO] probably remove this.
                         is_nonret |= (ct->retstatus() == UNKNOWN);
                         if (is_nonret) {
                             parsing_printf("\t Disallowing FT edge: function in "
@@ -1119,9 +1134,10 @@ Parser::parse_frame(ParseFrame & frame, bool recursive) {
 	    ProcessCFInsn(frame,nextBlock,*work->ah());
             continue;
 	}
+        // [DEF-TODO] see check fallthrough in the primer.
         // call fallthrough case where we have already checked that
         // the target returns. this is used in defensive mode.
-        else if (work->order() == ParseWorkElem::checked_call_ft) {
+        /*else if (work->order() == ParseWorkElem::checked_call_ft) {
             Edge* ce = bundle_call_edge(work->bundle());
             if (ce != NULL) {
                 invalidateContainingFuncs(func, ce->src());
@@ -1129,7 +1145,7 @@ Parser::parse_frame(ParseFrame & frame, bool recursive) {
                 parsing_printf("[%s] unexpected missing call edge at %lx\n",
                         FILE__,work->edge()->src()->lastInsnAddr());
             }
-        }
+        }*/
         
         if (NULL == cur) {
             pair<Block*,Edge*> newedge =
@@ -1314,15 +1330,18 @@ Parser::parse_frame(ParseFrame & frame, bool recursive) {
             ++num_insns; 
 
             if(ah.hasCFT()) {
-//	       if (false) {
-	       if (ah.isIndirectJump()) {
-	           // Create a work element to represent that
-		   // we will resolve the jump table later
+                // [DEF-TODO] see incomplete parsing in the primer.
+                if (unlikely(func->obj()->defensiveMode() && ah.isDynamicCall())) {
+                    func->incompleteParse(true);
+                }
+	            if (ah.isIndirectJump()) {
+	              // Create a work element to represent that
+		          // we will resolve the jump table later
                    end_block(cur,ah);
                    frame.pushWork( frame.mkWork( work->bundle(), cur, ah));
-	       } else {
-	           ProcessCFInsn(frame,cur,ah);
-	       }
+	            } else {
+	               ProcessCFInsn(frame,cur,ah);
+	            }
                break;
             } else if (func->_saves_fp &&
                        func->_no_stack_frame &&
@@ -1454,7 +1473,8 @@ Parser::parse_frame(ParseFrame & frame, bool recursive) {
 
         // Convenience -- adopt PLT name
         frame.func->_name = plt_entries[frame.func->addr()];
-    } else if (frame.func->_rs == UNSET) {
+    // [DEF-TODO] see incomplete parsing in the primer. incomplete case?
+    } else if (frame.func->_rs == UNSET && !frame.func->incompleteParse()) {
         frame.func->set_retstatus(NORETURN);
     }
 
