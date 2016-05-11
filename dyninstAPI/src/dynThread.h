@@ -54,7 +54,7 @@ public:
     static PCThread *createPCThread(PCProcess *parent, ProcControlAPI::Thread::ptr thr);
 
     // Stackwalking interface
-    bool walkStack(pdvector<Frame> &stackWalk);
+    bool walkStack(pdvector<Frame> &stackWalk, bool incPartial = false);
     Frame getActiveFrame();
     bool getRegisters(ProcControlAPI::RegisterPool &regs, bool includeFP = false);
     bool changePC(Address newPC);

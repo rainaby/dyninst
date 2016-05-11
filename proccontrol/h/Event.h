@@ -495,17 +495,19 @@ public:
    friend void boost::checked_delete<const EventSignal>(const EventSignal *);
  private:
    int sig;
-   // address that caused the signal (if any), the cause, and
+   // target address, source address, the cause, and
    // whether this is a first-cause exception (windows access violations).
    Address addr;
+   Address source;
    Cause cause;
    bool first;
  public:
    typedef boost::shared_ptr<EventSignal> ptr;
    typedef boost::shared_ptr<const EventSignal> const_ptr;
    EventSignal(int sig);
-   EventSignal(int s, Address a, Cause c, bool f) : Event(EventType(EventType::None, EventType::Signal)), 
-       sig(s), addr(a), cause(c), first(f) { }
+   EventSignal(int s, Address a, Address src, Cause c, bool f) :
+       Event(EventType(EventType::None, EventType::Signal)),
+       sig(s), addr(a), source(src), cause(c), first(f) { }
    virtual ~EventSignal();
 
    int getSignal() const;
@@ -514,6 +516,7 @@ public:
 
    // used to get information about windows access violations.
    Address getAddress() const { return addr; }
+   Address getSourceAddress() const { return source; }
    Cause getCause() const { return cause; }
    bool isFirst() const { return first; }
 };

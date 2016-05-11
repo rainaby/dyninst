@@ -295,12 +295,13 @@ bool DecoderWindows::decode(ArchEvent *ae, std::vector<Event::ptr> &events)
                     int sig = e.u.Exception.ExceptionRecord.ExceptionCode;
                     int cause = e.u.Exception.ExceptionRecord.ExceptionInformation[0];
                     Address addr = e.u.Exception.ExceptionRecord.ExceptionInformation[1];
+                    Address src = *(Address*)&e.u.Exception.ExceptionRecord.ExceptionAddress;
                     EventSignal* evSig = nullptr;
                     switch (cause) {
-                    case 0: evSig = new EventSignal(sig, addr, EventSignal::ReadViolation, true); break;
-                    case 1: evSig = new EventSignal(sig, addr, EventSignal::WriteViolation, true); break;
-                    case 8: evSig = new EventSignal(sig, addr, EventSignal::ExecuteViolation, true); break;
-                    default: evSig = new EventSignal(sig, addr, EventSignal::Unknown, true); break;
+                    case 0: evSig = new EventSignal(sig, addr, src, EventSignal::ReadViolation, true); break;
+                    case 1: evSig = new EventSignal(sig, addr, src, EventSignal::WriteViolation, true); break;
+                    case 8: evSig = new EventSignal(sig, addr, src, EventSignal::ExecuteViolation, true); break;
+                    default: evSig = new EventSignal(sig, addr, src, EventSignal::Unknown, true); break;
                     }
                     newEvt = EventSignal::ptr(evSig);
                 } else {

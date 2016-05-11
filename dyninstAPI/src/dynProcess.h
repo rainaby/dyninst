@@ -161,7 +161,7 @@ public:
     int incrementThreadIndex();
 
     // Stackwalking
-    bool walkStacks(pdvector<pdvector<Frame> > &stackWalks);
+    bool walkStacks(pdvector<pdvector<Frame> > &stackWalks, bool incPartial = false);
     bool getAllActiveFrames(pdvector<Frame> &activeFrames);
 
     // Inferior Malloc
@@ -300,7 +300,7 @@ public:
     Address setAOutLoadAddress(fileDescriptor &desc); // platform-specific
 
     // Stackwalking internals
-    bool walkStack(pdvector<Frame> &stackWalk, PCThread *thread);
+    bool walkStack(pdvector<Frame> &stackWalk, PCThread *thread, bool incPartial = false);
     bool getActiveFrame(Frame &frame, PCThread *thread);
 
     void addSignalHandler(Address, unsigned);

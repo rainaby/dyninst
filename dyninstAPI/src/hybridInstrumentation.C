@@ -208,10 +208,11 @@ bool HybridAnalysis::init()
         if ( (*allmods)[midx]->isExploratoryModeOn() ) 
         {
             mal_printf("\nINSTRUMENTING MOD %s\n",namebuf);
-            if (false == instrumentModule((*allmods)[midx],true)) {
-                fprintf(stderr, "%s[%d] Applied no instrumentation to mod %s\n",
-                        __FILE__,__LINE__,namebuf);
-                ret = false;
+            if (instrumentModule((*allmods)[midx],true) == DS_ERROR) {
+                fprintf(stderr,
+                    "%s[%d] Error applying defensive instrumentation to mod %s\n",
+                    __FILE__,__LINE__,namebuf);
+                return false;
             }
         } 
         else if (isDefensive && !strncmp(namebuf,"msvcrt.dll",64)) {
@@ -305,11 +306,11 @@ bool HybridAnalysis::canUseCache(BPatch_point *pt)
     return ret;
 }
 
-// returns false if no new instrumentation was added to the module
+// returns a Status. see definition in hybridAnalysis.h
 // Iterates through all unresolved instrumentation points in the 
 // function and adds control-flow instrumentation at each type: 
 // unresolved, abruptEnds, and return instructions
-bool HybridAnalysis::instrumentFunction(BPatch_function *func, 
+HybridAnalysis::Status HybridAnalysis::instrumentFunction(BPatch_function *func,
     bool useInsertionSet, 
     bool instrumentReturns,
     bool addShadowSync) 
@@ -638,11 +639,13 @@ bool HybridAnalysis::instrumentFunction(BPatch_function *func,
         mal_printf("instrumented %d points in function at %lx\n", 
                     pointCount,func->getBaseAddr());
         if (useInsertionSet) {
-            proc()->finalizeInsertionSet(false);
+            if (!proc()->finalizeInsertionSet(false)) {
+                return DS_ERROR;
+            }
         }
-        return true;
+        return DS_NEW;
     }
-    return false;
+    return DS_NONE;
 }// end instrumentFunction
 
 // 1. Removes elements from instrumentedFuncs
@@ -730,15 +733,15 @@ void HybridAnalysis::removeInstrumentation(BPatch_function *func,
     }
 }
 
-// Returns false if no new instrumentation was added to the module.  
+// Returns Status. See hybridAnalysis.h 
 // Relegates all instrumentation work to instrumentFunction
 // Protects the code in the module
-bool HybridAnalysis::instrumentModule(BPatch_module *mod, bool useInsertionSet) 
+HybridAnalysis::Status HybridAnalysis::instrumentModule(BPatch_module *mod, bool useInsertionSet)
 {
 	malware_cerr << "HybridAnalysis instrumenting mod at " << hex << (Address)mod->getBaseAddr() << dec << endl;
     assert(proc() && mod);
     if (false == mod->isExploratoryModeOn()) {
-        return true;
+        return DS_NONE;
     }
 
     if (useInsertionSet) {
@@ -746,13 +749,6 @@ bool HybridAnalysis::instrumentModule(BPatch_module *mod, bool useInsertionSet)
     }
 
     bool didInstrument = false;
-    // if this not the default module, instrument it as well
-    //if ( false == mod->isSharedLib() ) {
-    //    BPatch_module* defaultModule = mod->getObjectDefaultModule();
-    //    if (defaultModule != mod) {
-    //        didInstrument = instrumentModule(defaultModule,false) || didInstrument;
-    //    }
-    //}
 
     // instrument functions
     vector<BPatch_function*> *modFuncs = mod->getProcedures(false);
@@ -760,15 +756,20 @@ bool HybridAnalysis::instrumentModule(BPatch_module *mod, bool useInsertionSet)
     for (; fIter != modFuncs->end(); fIter++) 
     {
         if ( instrumentedFuncs->find(*fIter) == instrumentedFuncs->end() ) {
-            if (instrumentFunction(*fIter, false)) didInstrument = true;
-        }
+            Status status = instrumentFunction(*fIter, false);
+            if (status == DS_NEW) { didInstrument = true; }
+            else if (status == DS_ERROR) { return DS_ERROR; }
+		}
+		else {
+			malware_cerr << "skipping defenasive re-instrumentation of " << (*fIter)->getDemangledName() << std::endl;
+		}
     }
     
     if (useInsertionSet) {
         if (!proc()->finalizeInsertionSet(false)) {
             std::cerr << "Error! Could not defensively instrument module "
                 << (void*)mod->getBaseAddr() << std::endl;
-            return false;
+            return DS_ERROR;
         }
     }
 
@@ -777,7 +778,7 @@ bool HybridAnalysis::instrumentModule(BPatch_module *mod, bool useInsertionSet)
         mod->setAnalyzedCodeWriteable(false);
     }
 
-    return didInstrument;
+    return didInstrument ? DS_NEW : DS_NONE;
 }
 
 // Returns false if no new instrumentation was added to the module.  

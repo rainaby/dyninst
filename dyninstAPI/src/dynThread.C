@@ -151,7 +151,7 @@ PCProcess *PCThread::getProc() const {
     return proc_;
 }
 
-bool PCThread::walkStack(pdvector<Frame> &stackWalk) {
+bool PCThread::walkStack(pdvector<Frame> &stackWalk, bool incPartial) {
     if (cached_stackwalk_.isValid()) {
         stackWalk = cached_stackwalk_.getStackwalk();
         for (unsigned i=0; i<stackWalk.size(); i++) {
@@ -160,7 +160,7 @@ bool PCThread::walkStack(pdvector<Frame> &stackWalk) {
         return true;
     }
 
-    if (!proc_->walkStack(stackWalk, this))
+    if (!proc_->walkStack(stackWalk, this, incPartial))
     {
         return false;
     }

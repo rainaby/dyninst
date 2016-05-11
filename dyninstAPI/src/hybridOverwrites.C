@@ -71,10 +71,12 @@ InternalCodeOverwriteCallback HybridAnalysisOW::getCodeOverwriteCB()
 
 int HybridAnalysisOW::owLoop::IDcounter_ = 0;
 
-HybridAnalysisOW::owLoop::owLoop(HybridAnalysisOW *hybridow, 
+HybridAnalysisOW::owLoop::owLoop(HybridAnalysisOW *hybridow,
+                                 BPatch_function* function,
                                  Address writeTarg)
 {
     hybridow_ = hybridow;
+    function_ = function;
     writeTarget_ = writeTarg;
     activeStatus_ = true;
     writesOwnPage_ = false;
@@ -237,12 +239,12 @@ bool HybridAnalysisOW::removeLoop(owLoop *loop,
             overwriteAnalysis(writePoint,(void*)(intptr_t)loop->getID());
         } else {
             std::set<BPatch_function *> funcsToInstrument;
-            proc()->overwriteAnalysisUpdate(loop->shadowMap,
+            proc()->overwriteAnalysisUpdate(loop->getFunction(),
+                                            loop->shadowMap,
                                             deadBlocks,
                                             modFuncs,
                                             funcsToInstrument,
-                                            changedPages,
-                                            changedCode);
+                                            changedPages, changedCode);
             assert(!changedCode && "bug, overwrite loops should not contain "
                    "instructions that could trigger analysis update callbacks");
         }
@@ -1168,6 +1170,7 @@ void HybridAnalysisOW::overwriteAnalysis(BPatch_point *point, void *loopID_)
     Address pageAddress = (((Address)pointAddr) / pageSize) * pageSize;
     bool overwroteLoop = false;
     long loopID = (long)loopID_;
+    BPatch_function* overwritingFunc = point->getFunction();
 
     //if we quit early because we failed a bounds check on a write instruction:
     if (loopID < 0) {
@@ -1202,12 +1205,12 @@ void HybridAnalysisOW::overwriteAnalysis(BPatch_point *point, void *loopID_)
 
 /* 1. Identify overwritten blocks and update the analysis */
     // if writeTarget is non-zero, only one byte was overwritten
-    proc()->overwriteAnalysisUpdate(loop->shadowMap, 
+    proc()->overwriteAnalysisUpdate(loop->getFunction(),
+                                    loop->shadowMap,
                                     deadBlocks,
-                                    owFuncs, 
+                                    owFuncs,
                                     funcsToInstrument,
-                                    changedPages,
-                                    changedCode);
+                                    changedPages, changedCode);
 
     if (overwroteLoop) {
        delete(loop);
@@ -1297,7 +1300,9 @@ void HybridAnalysisOW::overwriteAnalysis(BPatch_point *point, void *loopID_)
                 }
             }
         }
-        bpatchEndCB(deadBlocks, owFuncs, modFuncs, newFuncs); 
+        if (bpatchEndCB) {
+            bpatchEndCB(deadBlocks, owFuncs, modFuncs, newFuncs);
+        }
         hybrid_->proc()->getImage()->clearNewCodeRegions();
 
     } // if the code changed 
@@ -1370,15 +1375,51 @@ bool HybridAnalysisOW::isRealStore(Address insnAddr, block_instance *block,
  * . Restore write permissions to the written page
  */
 void HybridAnalysisOW::overwriteSignalCB
-(Address faultInsnAddr, Address writeTarget) 
+(Address relocFaultInsnAddr, Address writeTarget)
 {
     using namespace std;
     // debugging output
-    mal_printf("\noverwriteSignalCB(%lx , %lx)\n", faultInsnAddr, writeTarget);
+    Address faultInsnAddr;
+    vector<func_instance*> tmp1;
+    baseTramp *tmp2;
+    proc()->lowlevel_process()->getAddrInfo(relocFaultInsnAddr, faultInsnAddr, tmp1, tmp2);
+    mal_printf("\noverwriteSignalCB(%lx [%x], %lx)\n", faultInsnAddr, relocFaultInsnAddr, writeTarget);
     // setup
     vector<BPatch_function*> faultFuncs;
     proc()->findFunctionsByAddr(faultInsnAddr,faultFuncs);
-    assert(!faultFuncs.empty());
+    assert(!faultFuncs.empty()); // [DEF-TODO] this may temporarily be disabled for debugging.
+
+    // check modules to see if a normal module needs to be switched to defensive.
+    BPatch_module* fault_module = proc()->findModuleByAddr(faultInsnAddr);
+    BPatch_module* write_module = proc()->findModuleByAddr(writeTarget);
+    if (fault_module != NULL) {
+        char fault_name[64];
+        fault_module->getName(fault_name, 64);
+        if (fault_module->getHybridMode() == BPatch_normalMode) {
+            malware_cerr << FILE__ << ":" << __LINE__
+                << " warning, overwrite from normal module "
+                << fault_name << "\n";
+        }
+
+        if (write_module != NULL) {
+            char write_name[64];
+            write_module->getName(write_name, 64);
+            if (write_module->getHybridMode() == BPatch_normalMode) {
+                malware_cerr << FILE__ << ":" << __LINE__
+                    << " overwrite from defensive to normal module.\n\t"
+                    "spreading defensive analysis from " << fault_module
+                    << " to " << write_module << "\n";
+                write_module->enableDefensiveMode(true);
+            }
+        }
+    }
+
+    if (fault_module == NULL || write_module == NULL) {
+        malware_cerr << FILE__ << ":" << __LINE__
+            << " warning, null module detected during overwrite ("
+            << (void*)faultInsnAddr << " -> " << (void*)writeTarget << ")\n";
+    }
+
     vector<BPatch_basicBlock*> faultBlocks;
     for (unsigned fidx=0; fidx < faultFuncs.size(); fidx++) {
 	    faultBlocks.push_back(faultFuncs[fidx]->getCFG()->findBlockByAddr(faultInsnAddr));
@@ -1423,7 +1464,7 @@ void HybridAnalysisOW::overwriteSignalCB
     }
 
     // grab the next available loopID 
-    loop = new owLoop(this, writeTarget);
+    loop = new owLoop(this, faultFuncs[0], writeTarget);
     mal_printf("new overwrite loop %d %d[%d]\n", loop->getID(), FILE__,__LINE__);
 
     // find loops surrounding the write insn
@@ -1496,10 +1537,12 @@ void HybridAnalysisOW::overwriteSignalCB
                    loop->blocks.size(), loop->getID(), FILE__, __LINE__);
     }
 
-    // make a shadow page and restore write privileges to the page
-    makeShadow_setRights(writeTarget, loop);
+    // make a shadow page and restore write privileges to the page.
+    // make sure to finalize instrumentation first, or our shadow
+    // will have the old springboards in it.
     loop->setActive(true);
     proc()->finalizeInsertionSet(false);
+    makeShadow_setRights(writeTarget, loop);
 }
 
 bool HybridAnalysisOW::registerCodeOverwriteCallbacks

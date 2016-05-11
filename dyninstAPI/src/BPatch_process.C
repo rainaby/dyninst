@@ -1514,12 +1514,13 @@ static bool hasWeirdEntryBytes(func_instance *func)
 }
 
 void BPatch_process::overwriteAnalysisUpdate
-    ( std::map<Dyninst::Address,unsigned char*>& owPages, //input
+    ( BPatch_function* owFunc, // input: the overwriting function
+      std::map<Dyninst::Address, unsigned char*>& owPages,
       std::vector<std::pair<Dyninst::Address,int> >& deadBlocks, //output
       std::vector<BPatch_function*>& owFuncs, //output: overwritten & modified
       std::set<BPatch_function *> &monitorFuncs, // output: those that call overwritten or modified funcs
       bool &changedPages, bool &changedCode) //output
-{
+{   
     //1.  get the overwritten blocks and regions
     std::list<std::pair<Address,Address> > owRegions;
     std::list<block_instance *> owBBIs;
@@ -1658,8 +1659,12 @@ void BPatch_process::overwriteAnalysisUpdate
               PatchAPI::PatchModifier::redirect(*sit, NULL);
            }
         }
-
-        if (false == PatchAPI::PatchModifier::remove(*fit)) {
+        
+        // only remove function if it's not the overwriter.
+        // else removing the loop will crash.
+        // is the func ever removed? [DEF-TODO]
+        if (*fit != owFunc->lowlevel_func() &&
+                false == PatchAPI::PatchModifier::remove(*fit)) {
             assert(0);
         }
     }

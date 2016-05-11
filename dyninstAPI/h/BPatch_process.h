@@ -63,6 +63,7 @@ class rpcMgr;
 class HybridAnalysis;
 struct batchInsertionRecord;
 
+
 typedef enum {
   BPatch_nullEvent,
   BPatch_newConnectionEvent,
@@ -236,11 +237,12 @@ class BPATCH_DLL_EXPORT BPatch_process : public BPatch_addressSpace {
 			     Dyninst::ProcControlAPI::Process::mem_perm rights);
   unsigned char *makeShadowPage(Dyninst::Address pageAddress);
   void overwriteAnalysisUpdate
-  ( std::map<Dyninst::Address,unsigned char*>& owPages, //input
-    std::vector<std::pair<Dyninst::Address,int> >& deadBlocks, //output
-    std::vector<BPatch_function*>& owFuncs,     //output
-    std::set<BPatch_function *> &monitorFuncs, //output
-    bool &changedPages, bool &changedCode ); //output
+  (BPatch_function* owFunc, //input one of the overwriting func(s)
+   std::map<Dyninst::Address, unsigned char*>& owPages, //input
+   std::vector<std::pair<Dyninst::Address, int>>& deadBlocks, //output
+   std::vector<BPatch_function*>& owFuncs, //output overwritten funcs
+   std::set<BPatch_function*> & monitorFuncs, //output
+   bool & changedPages, bool & changedCode); //output
   HybridAnalysis *getHybridAnalysis() { return hybridAnalysis_; }
   bool protectAnalyzedCode();
   // DO NOT USE

@@ -160,11 +160,18 @@ public:
     };
 
 private:
+    // defensive instrumentation status.
+    // return value for defensive mode instrumentation.
+    enum Status {
+        DS_ERROR, // error
+        DS_NONE, // success, but no changes
+        DS_NEW // success with changes
+    };
 
     // instrumentation functions 
     bool instrumentModules(bool useInsertionSet); 
-    bool instrumentModule(BPatch_module *mod, bool useInsertionSet); 
-    bool instrumentFunction(BPatch_function *func, 
+    Status instrumentModule(BPatch_module *mod, bool useInsertionSet);
+    Status instrumentFunction(BPatch_function *func,
                             bool useInsertionSet, 
                             bool instrumentReturns=false,
                             bool syncShadow = false);
@@ -199,11 +206,12 @@ private:
 
     // needs to call removeInstrumentation
     friend void BPatch_process::overwriteAnalysisUpdate
-       ( std::map<Dyninst::Address,unsigned char*>& owPages, 
-         std::vector<std::pair<Dyninst::Address,int> >& deadBlocks,
-         std::vector<BPatch_function*>& owFuncs,     
-         std::set<BPatch_function *> &monitorFuncs, 
-         bool &changedPages, bool &changedCode ); 
+       (BPatch_function* owFunc,
+        std::map<Dyninst::Address, unsigned char*>& owPages,
+        std::vector<std::pair<Dyninst::Address, int>>& deadBlocks,
+        std::vector<BPatch_function*>& owFuncs,
+        std::set<BPatch_function*> & monitorFuncs,
+        bool & changedPages, bool & changedCode);
 
     // variables
     std::map<Dyninst::Address, ExceptionDetails> handlerFunctions; 
@@ -237,13 +245,15 @@ public:
 
     class owLoop {
     public:
-        owLoop(HybridAnalysisOW *hybridow, 
+        owLoop(HybridAnalysisOW *hybridow,
+               BPatch_function* func,
                Dyninst::Address writeTarg);
         ~owLoop();
         static int getNextLoopId() { return ++IDcounter_; };
         bool isActive() const { return activeStatus_; };
         bool writesOwnPage() const { return writesOwnPage_; }
         bool isRealLoop() const { return realLoop_; }
+        BPatch_function* getFunction() { return function_; }
         int getID() const { return loopID_; }
         Dyninst::Address getWriteTarget() { return writeTarget_; }
         void setWriteTarget(Dyninst::Address targ);
@@ -283,6 +293,9 @@ public:
         //unresolved control transfers that we treat as exit points
         std::set<BPatch_point*> unresExits_;
     private:
+        // the function this loop is in.
+        BPatch_function* function_;
+
         //write target, set to 0 if loop has multiple write targets
         Dyninst::Address writeTarget_;
         //loop active status

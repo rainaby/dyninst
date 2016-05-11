@@ -37,6 +37,7 @@
 #include "RegisterConversion.h"
 #include "function.h"
 #include "MemoryEmulator/memEmulator.h"
+#include "hybridAnalysis.h"
 
 #include "Mailbox.h"
 #include "PCErrors.h"
@@ -484,22 +485,10 @@ bool PCEventHandler::handleSignal(EventSignal::const_ptr ev, PCProcess *evProc) 
                 }
             }
 
-            // change permissions if we can find this originally writable region
-            if (obj != NULL) {
-                SymtabAPI::Region* reg = 
-                    obj->parse_img()->getObject()->findEnclosingRegion(addr - obj->codeBase());
-                if (reg != NULL && (reg->getRegionPermissions() == SymtabAPI::Region::RP_RW
-                            || reg->getRegionPermissions() == SymtabAPI::Region::RP_RWX)) {
-                        // change back permissions.
-                        PCProcess::PCMemPerm rights(true, true, true);
-                        evProc->changeMemoryProtections(
-                            addr - (addr % evProc->getMemoryPageSize()), 
-                            evProc->getMemoryPageSize(), 
-                            rights /* PAGE_EXECUTE_READWRITE */ , 
-                            false);
-                        return true;
-                }
-            }
+            // invoke defensive mode overwrite callback (handle overwrite).
+            reinterpret_cast<BPatch_process*>(evProc->up_ptr())->
+                    getHybridAnalysis()->hybridOW()->
+                    overwriteSignalCB(ev->getSourceAddress(), ev->getAddress());
 
             // else fall through to forwarding.
     }

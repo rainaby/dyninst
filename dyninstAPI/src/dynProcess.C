@@ -1516,7 +1516,7 @@ PCEventHandler * PCProcess::getPCEventHandler() const {
     return eventHandler_;
 }
 
-bool PCProcess::walkStacks(pdvector<pdvector<Frame> > &stackWalks) {
+bool PCProcess::walkStacks(pdvector<pdvector<Frame> > &stackWalks, bool incPartial) {
     bool needToContinue = false;
     bool retval = true;
 
@@ -1539,8 +1539,9 @@ bool PCProcess::walkStacks(pdvector<pdvector<Frame> > &stackWalks) {
         PCThread *curThr = i->second;
 
         pdvector<Frame> stackWalk;
-        if( !curThr->walkStack(stackWalk) ) {
-            retval = false;
+        bool ret = curThr->walkStack(stackWalk, incPartial);
+        retval = retval && ret;
+        if( !ret && !incPartial ) {
             proccontrol_printf("%s[%d]: failed to walk stack for thread 0x%lx(%d)\n",
                     FILE__, __LINE__,
                     curThr->getTid(), curThr->getLWP());
@@ -2285,24 +2286,20 @@ void PCProcess::updateCodeBytes
     assert(objRanges.size() <= 1); //o/w analysis code may not be prepared for other cases
 }
 
-#if 0
+// fills otherBlks with tthe blocks in func that aren't in blks.
 static void otherFuncBlocks(func_instance *func, 
                             const set<block_instance*> &blks, 
                             set<block_instance*> &otherBlks)
 {
-    const func_instance::BlockSet &allBlocks = 
-        func->blocks();
-    for (func_instance::BlockSet::const_iterator bit =
-         allBlocks.begin();
-         bit != allBlocks.end(); 
-         bit++) 
+    const auto &allBlocks = func->blocks();
+    for (auto bit = allBlocks.begin(); bit != allBlocks.end(); bit++)
     {
-        if (blks.end() == blks.find((*bit))) {
-            otherBlks.insert((*bit));
+        if (blks.end() == blks.find((SCAST_BI(*bit)))) {
+            otherBlks.insert(SCAST_BI((*bit)));
         }
     }
 }
-#endif
+
 
 /* Summary
  * Given a list of overwritten blocks, find blocks that are unreachable,
@@ -2343,24 +2340,24 @@ static void otherFuncBlocks(func_instance *func,
  *          EP(f) in ow(f) AND ex(f) is empty
  */
 bool PCProcess::getDeadCode
-( const std::list<block_instance*> & /*owBlocks*/, // input
-  std::set<block_instance*> & /*delBlocks*/, //output: Del(for all f)
-  std::map<func_instance*,set<block_instance*> > & /*elimMap*/, //output: elimF
-  std::list<func_instance*> & /*deadFuncs*/, //output: DeadF
-  std::map<func_instance*,block_instance*> & /*newFuncEntries*/) //output: newF
+( const std::list<block_instance*> & owBlocks, // input
+  std::set<block_instance*> & delBlocks, //output: Del(for all f)
+  std::map<func_instance*,set<block_instance*> > & elimMap, //output: elimF
+  std::list<func_instance*> & deadFuncs, //output: DeadF
+  std::map<func_instance*,block_instance*> & newFuncEntries) //output: newF
 {
-   assert(0 && "TODO");
-   return false;
-#if 0
     // do a stackwalk to see which functions are currently executing
     pdvector<pdvector<Frame> >  stacks;
     pdvector<Address> pcs;
-    if (!walkStacks(stacks)) {
-        inst_printf("%s[%d]:  walkStacks failed\n", FILE__, __LINE__);
-        return false;
-    }
+    walkStacks(stacks, true);
+    // [DEF-TODO] stackwalker doesn't work on windows. the true arg
+    // above is a temporary workaround. 
+
     for (unsigned i = 0; i < stacks.size(); ++i) {
         pdvector<Frame> &stack = stacks[i];
+        if (stack.size() == 0) {
+            mal_printf("%s[%d]: stack walk for dead code detection returned empty\n", FILE__, __LINE__);
+        }
         for (unsigned int j = 0; j < stack.size(); ++j) {
             Address origPC = 0;
             vector<func_instance*> dontcare1;
@@ -2374,15 +2371,19 @@ bool PCProcess::getDeadCode
     std::map<func_instance*,set<block_instance*> > deadMap;
     std::set<func_instance*> deadEntryFuncs;
     std::set<Address> owBlockAddrs;
+    std::vector<func_instance*> containingFuncs;
     for (list<block_instance*>::const_iterator bIter=owBlocks.begin();
          bIter != owBlocks.end(); 
          bIter++) 
     {
-       deadMap[(*bIter)->func()].insert(*bIter);
+        (*bIter)->getFuncs(std::back_inserter(containingFuncs));
+        for (auto func : containingFuncs) {
+            deadMap[func].insert(*bIter);
+            if ((*bIter)->llb() == func->ifunc()->entry()) {
+                deadEntryFuncs.insert(func);
+            }
+        }
        owBlockAddrs.insert((*bIter)->start());
-       if ((*bIter)->llb() == (*bIter)->func()->ifunc()->entry()) {
-          deadEntryFuncs.insert((*bIter)->func());
-       }
     }
 
     // for each modified function, calculate ex, ElimF, NewF, DelF
@@ -2395,7 +2396,7 @@ bool PCProcess::getDeadCode
         set<block_instance*> execBlocks;
         for (unsigned pidx=0; pidx < pcs.size(); pidx++) {
             std::set<block_instance *> candidateBlocks;
-            fit->first->findBlocksByAddr(pcs[pidx], candidateBlocks);
+            fit->first->getBlocks(pcs[pidx], candidateBlocks);
             for (std::set<block_instance *>::iterator cb_iter = candidateBlocks.begin();
                 cb_iter != candidateBlocks.end(); ++cb_iter) {
                 block_instance *exB = *cb_iter;
@@ -2462,7 +2463,6 @@ bool PCProcess::getDeadCode
     }
 
     return true;
-#endif
 }
 
 // will flush addresses of all addresses in the specified range, if the
@@ -2868,15 +2868,14 @@ void PCProcess::setDesiredProcessState(PCProcess::processState_t pc) {
 }
 
 bool PCProcess::walkStack(pdvector<Frame> &stackWalk,
-                          PCThread *thread)
+                          PCThread *thread, bool incPartial)
 {
   if( stackwalker_ == NULL ) return false;
 
   vector<Dyninst::Stackwalker::Frame> swWalk;
-
-  if (!stackwalker_->walkStack(swWalk, thread->getLWP()))
-  {
-    return false;
+  bool ret = stackwalker_->walkStack(swWalk, thread->getLWP());
+  if (!ret && !incPartial) {
+      return false;
   }
 
   for (vector<Dyninst::Stackwalker::Frame>::iterator SWB = swWalk.begin(),
@@ -2888,7 +2887,7 @@ bool PCProcess::walkStack(pdvector<Frame> &stackWalk,
     stackWalk.push_back(Frame(*SWI, this, thread, (SWI == SWB)));
   }
 
-  return true;
+  return ret;
 }
 
 bool PCProcess::getActiveFrame(Frame &frame, PCThread *thread)
