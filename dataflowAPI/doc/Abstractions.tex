@@ -7,24 +7,29 @@ From these, it provides dataflow facts in a variety of forms. The key abstractio
 \begin{itemize}
 \item[Abstract Location] Represents a register or memory location (cite).
 DataflowAPI provides three types of abstract locations: registers, stack, and
-help. Register abstract locations are distinguished through register names.
-Stack abstract locations are distinguished by the offset within a stack frame
-and the function to which the stack frame belongs.
-Head abstract locations are distinguished by the virtual address of the
-location.
+help. A register abstract location represents a register and a register at two
+different program locations is represented with the same abstract location. 
+A stack abstract location consists of the stack frame to which it belongs and
+the offset within the stack frame. 
+A heap abstract location represents the virtual address of the heap variable. 
+
 \item[Abstract Region] Represents a set of abstract locations of the same type
 (cite). If an abstract region contains only a single abstract location, the
 abstract location is precisely represented. 
 If an abstract region contains more than one abstract locations, the region
-contains the type of the locations. For a memory region, it also contains 
-the memory address calculation that gives rise to this region. The address
-calculation is represented with an AST described below.
-\item[AST] Represents the symbolic expansion of an instruction's full semantics
-\item[Semantics Policy] Provides callbacks for each low-level operation an instruction may perform.
+contains the type of the locations. In the cases where it represents memory
+(either heap or stack), an abstract region also contains 
+the memory address calculation that gives rise to this region. 
+The address calculation is represented with an AST described below.
+
+\item[AST] Represents a symbolic expression of an instruction's full semantics.
+Specifically, an AST specifies the value of a register or a memory location is changed by this
+instruction.
+
 \item[Assignment] Represents a single data dependency of abstract regions in an instruction. For example, xchg eax, ebx creates two assignments: one from pre-instruction eax to post-instruction ebx, and one from pre-instruction ebx to post-instruction eax.
+
 \item[Stack Height] Represents the difference between a value in an abstract location and the stack pointer at a function's call site.
 \item[Graph] Represents a directed graph.
-\item[Symbolic Evaluator] Translates a graph representing a program slice (cite) into a mapping from assignments to ASTs.
 \end{itemize}
 
 

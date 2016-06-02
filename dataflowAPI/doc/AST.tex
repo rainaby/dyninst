@@ -1,0 +1,151 @@
+\subsection{AST}
+\label{sec:ast}
+\definedin{common/h/DynAST.h}
+
+We provide a generic AST framework to represent tree structures. One example use
+case is to represent instruction semantics. This AST framework include the base
+class definitions for tree nodes and AST visitors. Users can inherit tree node
+classes to create their own AST structure and AST visitors to write their own
+analyses of the AST. 
+
+All AST node classes should be derived from class AST, which provides the
+following interfaces.
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+AST::ID  & Meaning \\
+\midrule 
+    V\_AST & Base class type \\
+    V\_BottomAST & Bottom AST node \\
+    V\_ConstantAST & Constant AST node \\
+    V\_VariableAST & Variable AST node \\
+    V\_RoseAST & ROSEOperation AST node \\
+    V\_StackAST & Stack AST node \\
+    V\_InputVariableAST & InputVariable AST node \\
+    V\_ReferenceAST & Reference AST node \\
+    V\_StpAST & Stp AST node\\
+    V\_YicesAST & Yices AST node \\
+    V\_SemanticsAST & semantics AST node \\
+
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{apient}
+typedef boost::shared_ptr<AST> Ptr;
+\end{apient}
+\apidesc{Every AST node class has this type for shared pointer access.}
+
+\begin{apient}
+typedef std::vector<AST::Ptr> Children;      
+\end{apient}
+\apidesc{The container type for the children of this AST.}
+
+\begin{apient}
+bool AST::operator==(const AST &rhs) const; 
+bool AST::equals(AST::Ptr rhs);
+\end{apient}
+\apidesc{Check whether two AST nodes are equal. Return \code{true} when two
+nodes are in the same type and are equal according to the \code{==} operator of that type.}
+
+\begin{apient}
+virtual unsigned AST::numChildren() const; 
+\end{apient}
+\apidesc{Return the number of children of this node.}
+
+\begin{apient}
+virtual AST::Ptr child(unsigned) const;
+\end{apient}
+\apidesc{Return the specified child.}
+ 
+\begin{apient}
+virtual const std::string format() const = 0;
+\end{apient}
+\apidesc{Return the string representation of the node.}
+
+\begin{apient}
+static AST::Ptr substitute(AST::Ptr in, AST::Ptr a, AST::Ptr b); 
+\end{apient}
+\apidesc{Substitute every occurrence of \code{a} with \code{b} in AST \code{in}.
+Return a new AST after the substitution.}
+
+\begin{apient} 
+virtual AST::ID AST::getID() const;
+\end{apient}
+\apidesc{Return the class type ID of this node.}
+
+\begin{apient}
+virtual Ptr accept(ASTVisitor *v);
+\end{apient}
+\apidesc{Apply visitor \code{v} to each node in this AST.}
+
+\begin{apient}
+AST::Ptr AST::ptr();
+\end{apient}
+\apidesc{Make a shared pointer of this object.}
+
+\begin{apient}
+virtual void AST::setChild(int i, AST::Ptr c);
+\end{apient}
+\apidesc{Set the \code{i}th child of this node to \code{c}.}
+
+
+Dataflow API provides two node types: internal nodes and leaf nodes, which can
+be defined:
+
+\begin{apient}
+#define DEF_AST_LEAF_TYPE(name, type)					
+#define DEF_AST_INTERNAL_TYPE(name, type)				
+\end{apient}
+\apidesc{These two macros define a leaf node class or an internal node class
+with a class name \code{name} and associate the class with a data type
+\code{type}. Note that the AST classes only represents the tree structure; the
+data type class \code{type} provides a way to embed other information into the
+AST. Both classes are derived from class \code{AST}.}
+
+After defining a leaf node class, the user can use the following interface to
+create leaf node objects:
+
+\begin{apient}
+typedef boost::shared_ptr<name> name::Ptr;			
+static name::Ptr name::create(type t);
+\end{apient}
+\apidesc{Create a leaf node object.}
+
+After defining an internal node class, the user can use the following interfaces to
+create internal node objects:
+
+\begin{apient}
+typedef boost::shared_ptr<name> name::Ptr;			
+static name::Ptr name::create(type t, AST::Ptr a);
+static name::Ptr name::create(type t, AST::Ptr a, AST::Ptr b);
+static name::Ptr name::create(type t, AST::Ptr a, AST::Ptr b, AST::Ptr c);
+static name::Ptr name::create(type t, AST::Children children);
+\end{apient}
+\apidesc{Create an internal node with data object \code{t} and the internal node
+has a single child \code{a}, or two children \code{a} and \code{b}, or three
+children \code{a}, \code{b}, and \code{c}, or a children vector \code{children}.}
+
+
+The ASTVisitor class defines the operations to take during visiting an AST for
+each AST node type. Users can inherit this class to write customized analyses
+for ASTs.
+
+\begin{apient}
+typedef boost::shared_ptr<AST> ASTVisitor::ASTPtr;
+virtual ASTVisitor::ASTPtr ASTVisitor::visit(AST *);
+virtual ASTVisitor::ASTPtr ASTVisitor::visit(DataflowAPI::BottomAST *);
+virtual ASTVisitor::ASTPtr ASTVisitor::visit(DataflowAPI::ConstantAST *);
+virtual ASTVisitor::ASTPtr ASTVisitor::visit(DataflowAPI::VariableAST *);
+virtual ASTVisitor::ASTPtr ASTVisitor::visit(DataflowAPI::RoseAST *);
+virtual ASTVisitor::ASTPtr ASTVisitor::visit(StackAST *);
+virtual ASTVisitor::ASTPtr ASTVisitor::visit(InputVariableAST *);
+virtual ASTVisitor::ASTPtr ASTVisitor::visit(ReferenceAST *);
+virtual ASTVisitor::ASTPtr ASTVisitor::visit(StpAST *);
+virtual ASTVisitor::ASTPtr ASTVisitor::visit(YicesAST *);
+virtual ASTVisitor::ASTPtr ASTVisitor::visit(SemanticsAST *);
+\end{apient}
+\apidesc{Operations applied during visiting each type of AST node. The default
+behavior is returning the input parameter.}
+
