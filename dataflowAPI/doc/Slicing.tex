@@ -5,17 +5,16 @@
 
 Class Slicer is the main interface for performing forward and backward slicing.
 The slicing algorithm starts with a user provided Assignment and generates a
-Graph as the slicing results. The nodes in the generated Graph are individual
-Assignments that affect the starting Assignment (backward slicing) or are
-affected by the starting Assignment (forward slicing). The edges in the Graph
+graph as the slicing results. The nodes in the generated Graph are individual
+assignments that affect the starting assignment (backward slicing) or are
+affected by the starting assignment (forward slicing). The edges in the graph
 are directed and represent either data flow dependencies or control flow
 dependencies. 
 
-As slicing a whole function can be expensive, a focus of our slicing interface
-is to provide users flexible controls over the slicing procedures, so that users
-can determine when and where to stop the slicing. In particular, we designed
-class Predicates, which contains a collection of call back functions that can
-control the specific behaviors of the Slicer. Users can inherit Predicates class
+We provide callback functions 
+and allow users controlling when to stop slicing. 
+In particular, class \code{Slicer::Predicates} contains a collection of call back functions that can
+control the specific behaviors of the slicer. Users can inherit Predicates class
 to provide customized stopping criteria for the slicer.
 
 \begin{apient}
@@ -25,8 +24,8 @@ Slicer(AssignmentPtr a,
        bool cache = true,
        bool stackAnalysis = true);
 \end{apient}
-\apidesc{Construct a slicer, which will perform forward or backward slicing
-starting at Assignment \code{a}. \code{block} and \code{func} represent the
+\apidesc{Construct a slicer, which can then be used to perform forward or backward slicing
+starting at the assignment \code{a}. \code{block} and \code{func} represent the
 context of assignment \code{a}. \code{cache} specifies whether the slicer will
 cache the results of conversions from instructions to assignments.
 \code{stackAnalysis} specifies whether the slicer will invoke stack analysis to
@@ -37,19 +36,7 @@ GraphPtr forwardSlice(Predicates &predicates);
 GraphPtr backwardSlice(Predicates &predicates);
 \end{apient}
 \apidesc{Perform forward or backward slicing and use \code{predicates} to
-control the stopping criteria.}
-
-\begin{apient}
-std::set<ParseAPI::Edge*> visitedEdges;
-\end{apient}
-\apidesc{A set of control flow edges that have been visited during slicing.
-Users can check this set of edges to determine whether the slicing should be
-continued.}	
-
-\begin{apient}
-static bool isWidenNode(Node::Ptr n);
-\end{apient}
-\apidesc{Whether a node is the slice graph is widened}
+control the stopping criteria and return the slicing results as a graph}
 
 A slice is represented as a Graph. The nodes and edges are defined as below:
 
@@ -63,10 +50,13 @@ class SliceNode : public Node
 typedef boost::shared_ptr<SliceNode> Ptr;      
 static SliceNode::Ptr SliceNode::create(AssignmentPtr ptr,
                                         ParseAPI::Block *block,
-					ParseAPI::Function *func);
+                                        ParseAPI::Function *func);
 \end{apient}
 \apidesc{Create a slice node, which represents assignment \code{ptr} in basic
 block \code{block} and function \code{func}.}
+
+Class SliceNode has the following methods to retrieve information associated the
+node:
 
 \begin{tabular}{p{1.25in}p{1.125in}p{3.125in}}
 \toprule
@@ -90,10 +80,10 @@ class SliceEdge : public Edge
 typedef boost::shared_ptr<SliceEdge> Ptr;
 static SliceEdge::Ptr create(SliceNode::Ptr source,
                              SliceNode::Ptr target,
-			     AbsRegion const&data);
+                             AbsRegion const&data);
 \end{apient}
-\apidesc{Create a slice edge from \code{source} to \code{target} and the edge is
-labeled with \code{data}.}
+\apidesc{Create a slice edge from \code{source} to \code{target} and the edge
+presents a dependency about abstract region \code{data}.}
 
 \begin{apient}
 const AbsRegion &data() const;
@@ -111,23 +101,15 @@ Class Predicates abstracts the stopping criteria of slicing. Users can inherit
 this class to control slicing in various situations, including whether or not
 performing inter-procedural slicing, whether or not searching for control flow
 dependencies, and stopping slicing after discovering certain assignments. We
-provide a set of call back functions that allow users to dynamically and precisely control the
+provide a set of call back functions that allow users to dynamically control the
 behavior of the Slicer.
 
 \begin{apient}
 Predicates(); 
 \end{apient}
-\apidesc{Construct a default predicate, which will only search for data flow
-dependencies and will not clean cache.}
-
-\begin{apient}
-bool performCacheClear(); 
-\end{apient}
-\apidesc{Clear the cache.}
-
-\begin{apient}
-void setClearCache(bool b);
-\end{apiend}
+\apidesc{Construct a default predicate, which will only search for
+intraprocedural data flow
+dependencies.}
 
 \begin{apient}
 bool searchForControlFlowDep();
@@ -140,7 +122,6 @@ void setSearchForControlFlowDep(bool cfd);
 \end{apient}
 \apidesc{Change whether or not to search for control flow dependencies according
 to \code{cfd}.}
-
 
 \begin{apient}
 virtual bool widenAtPoint(AssignmentPtr) { return false; }
@@ -159,9 +140,9 @@ not want to continue searching for this assignment. Otherwise, it should return
 \begin{apient}
 typedef std::pair<ParseAPI::Function *, int> StackDepth_t;
 typedef std::stack<StackDepth_t> CallStack_t;
-virtual bool followCallee(ParseAPI::Function * callee,
-                          CallStack_t & cs,
-			  AbsRegion argument);
+virtual bool followCall(ParseAPI::Function * callee,
+                        CallStack_t & cs,
+                        AbsRegion argument);
 
 \end{apient}
 \apidesc{This predicate function is called when the slicer reaches a direct call site.
@@ -172,20 +153,21 @@ site, and \code{argument}, which represents the variable to slice with in the
 callee function. This function is default to always return \code{false}. 
 Note that as Dyninst currently does not try to resolve indirect
 calls, the slicer will NOT call this function at an indirect call site. }
+%virtual bool followCallee(ParseAPI::Function * callee,
 
-\begin{apient}
-virtual bool followCall(ParseAPI::Function * /*callee*/,
-                        CallStack_t & /*cs*/,
-			AbsRegion /*argument*/); 
-\end{apient}
-\apidesc{The same as \code{followCallee}. This function is going to be
-depreciated and exists for backward compatibility.}
+%\begin{apient}
+%virtual bool followCall(ParseAPI::Function * /*callee*/,
+%                        CallStack_t & /*cs*/,
+%			AbsRegion /*argument*/); 
+%\end{apient}
+%\apidesc{The same as \code{followCallee}. This function is going to be
+%depreciated and exists for backward compatibility.}
 
 \begin{apient}
 virtual std::vector<ParseAPI::Function *> 
-        followCaller(ParseAPI::Block * caller,
-                     CallStack_t & cs,
-                     AbsRegion argument);       
+          followCallBackward(ParseAPI::Block * caller,
+                             CallStack_t & cs,
+                             AbsRegion argument);       
 \end{apient}
 \apidesc{This predicate function is called when the slicer reaches the entry of
 a function in the case of backward slicing or reaches a return instruction in
@@ -197,14 +179,16 @@ represents the caller functions that have been followed to this place, and
 function. This function is default to always
 return an empty vector.}
 
-\begin{apient}
-virtual std::vector<ParseAPI::Function *> 
-        followCallBackward(ParseAPI::Block * /*callerB*/,
-                           CallStack_t & /*cs*/,
-                           AbsRegion /*argument*/) 
-\end{apient}	
-\apidesc{The same as \code{followCaller}. This function is going to be
-depreciated and exists for backward compatibility. }
+%        followCaller(ParseAPI::Block * caller,
+
+%\begin{apient}
+%virtual std::vector<ParseAPI::Function *> 
+%        followCallBackward(ParseAPI::Block * /*callerB*/,
+%                           CallStack_t & /*cs*/,
+%                           AbsRegion /*argument*/) 
+%\end{apient}	
+%\apidesc{The same as \code{followCaller}. This function is going to be
+%depreciated and exists for backward compatibility. }
 
 \begin{apient}
 virtual bool addPredecessor(AbsRegion reg);

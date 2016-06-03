@@ -1,5 +1,5 @@
-\subsection{Graph}
-\definedin{common/h/Graph.h}
+\subsection{Class Graph}
+\definedin{Graph.h}
 \label{sec:graph}
 
 We provide a generic graph interface, which allows users adding, deleting,
@@ -8,152 +8,130 @@ upon this graph interface, so users can inherit the defined classes for
 customization.
 
 \begin{apient}
-typedef boost::shared_ptr<Graph> Graph::Ptr;
+typedef boost::shared_ptr<Graph> Ptr;
 \end{apient}
 \apidesc{Shared pointer for Graph}
 
 \begin{apient}
-virtual void Graph::entryNodes(NodeIterator &begin, NodeIterator &end);
+virtual void entryNodes(NodeIterator &begin, NodeIterator &end);
 \end{apient}
 \apidesc{The entry nodes (nodes without any incoming edges) of the graph.}
 
-    // If you want to traverse the graph backwards start here.
 \begin{apient}
-virtual void Graph::exitNodes(NodeIterator &begin, NodeIterator &end);
+virtual void exitNodes(NodeIterator &begin, NodeIterator &end);
 \end{apient}
 \apidesc{The exit nodes (nodes without any outgoing edges) of the graph.}
     
 \begin{apient}
-virtual void Graph::allNodes(NodeIterator &begin, NodeIterator &end);
+virtual void allNodes(NodeIterator &begin, NodeIterator &end);
 \end{apient}
 \apidesc{Iterate all nodes in the graph.}
 
-
 \begin{apient}
-class Graph::NodePredicate;
-typedef boost::shared_ptr<Graph::NodePredicate> Graph::NodePredicate::Ptr;
-virtual bool Graph::NodePredicate::predicate(const NodePtr &node) = 0;
-
-\end{apient}
-\apidesc{Interface class for predicate-based searches. Users can inherit this
-class to specify the functor to use as a predicate to iterate over nodes in the
-graph.}
-
-
-\begin{apient}
-virtual bool Graph::find(Address addr, NodeIterator &begin, NodeIterator &end);
-
-typedef bool (*NodePredicateFunc)(const NodePtr &node, void *user_arg);
-virtual bool Graph::find(NodePredicate::Ptr, NodeIterator &begin, NodeIterator &end);
-
-virtual bool Graph::find(NodePredicateFunc, void *user_arg, NodeIterator &begin, NodeIterator &end);
-\end{apient}
-\apidesc{Find all nodes satisfying the given conditions} 
-
-\begin{apient}
-bool Graph::printDOT(const std::string& fileName);
+bool printDOT(const std::string& fileName);
 \end{apient}
 \apidesc{Output the graph in dot format.}
 
 \begin{apient}
-static Graph::Ptr Graph::createGraph();
+static Graph::Ptr createGraph();
 \end{apient}
 \apidesc{Return an empty graph.}
 
 \begin{apient}
-void Graph::insertPair(NodePtr source, NodePtr target, EdgePtr edge = EdgePtr());
+void insertPair(NodePtr source, NodePtr target, EdgePtr edge = EdgePtr());
 \end{apient}
 \apidesc{Insert an pair of node into the graph and create a new edge \code{edge} from
 \code{source} to \code{target}.}
 
 \begin{apient}
-virtual void Graph::insertEntryNode(NodePtr entry);
-virtual void Graph::insertExitNode(NodePtr exit);
+virtual void insertEntryNode(NodePtr entry);
+virtual void insertExitNode(NodePtr exit);
 \end{apient}
 \apidesc{Insert a node as an entry/exit node}
 
 \begin{apient}
-virtual void Graph::markAsEntryNode(NodePtr entry);
-virtual void Graph::markAsExitNode(NodePtr exit);
+virtual void markAsEntryNode(NodePtr entry);
+virtual void markAsExitNode(NodePtr exit);
+\end{apient}
 \apidesc{Mark a node that has been added to this graph as an entry/exit node.}
 
 
 \begin{apient}
-void Graph::deleteNode(NodePtr node);
-void Graph::addNode(NodePtr node);
+void deleteNode(NodePtr node);
+void addNode(NodePtr node);
 \end{apient}
 \apidesc{Delete / Add a node.}
 
 \begin{apient}
-bool Graph::isEntryNode(NodePtr node);
-bool Graph::isExitNode(NodePtr node);
+bool isEntryNode(NodePtr node);
+bool isExitNode(NodePtr node);
 \end{apient}
 \apidesc{Check whether a node is an entry / exit node}
 
 \begin{apient}
-void Graph::clearEntryNodes();
-void Graph::clearExitNodes();
+void clearEntryNodes();
+void clearExitNodes();
 \end{apient}
 \apidesc{Clear the marking of entry / exit nodes. Note that the nodes are not
 deleted from the graph.}
 
 \begin{apient}
-unsigned Graph::size() const;
+unsigned size() const;
 \end{apient}
 \apidesc{Return the number of nodes in the graph.}
 
-\subsection{Node}
-\definedin{common/h/Node.h}
+\subsection{Class Node}
+\definedin{Node.h}
 
 \begin{apient}
-typedef boost::shared_ptr<Node> Node::Ptr;
+typedef boost::shared_ptr<Node> Ptr;
 \end{apient}
 \apidesc{shared pointer for Node}
 
 \begin{apient}
-void Node::ins(EdgeIterator &begin, EdgeIterator &end);
-void Node::outs(EdgeIterator &begin, EdgeIterator &end);
+void ins(EdgeIterator &begin, EdgeIterator &end);
+void outs(EdgeIterator &begin, EdgeIterator &end);
 \end{apient}
 \apidesc{Iterate over incoming/outgoing edges of this node.}
 
 \begin{apient}
-void Node::ins(NodeIterator &begin, NodeIterator &end);
-void Node::outs(NodeIterator &begin, NodeIterator &end);
+void ins(NodeIterator &begin, NodeIterator &end);
+void outs(NodeIterator &begin, NodeIterator &end);
 \end{apient}
 \apidesc{Iterate over adjacent nodes connected with incoming/outgoing edges of
 this node}.
 
 \begin{apient}
-bool Node::hasInEdges(); 
-bool Node::hasOutEdges();
+bool hasInEdges(); 
+bool hasOutEdges();
 \end{apient}
 \apidesc{Return \code{true} if this node has incoming/outgoing edges.}
 
 \begin{apient}
-void Node::deleteInEdge(EdgeIterator e);
-void Node::deleteOutEdge(EdgeIterator e);
+void deleteInEdge(EdgeIterator e);
+void deleteOutEdge(EdgeIterator e);
 \end{apient}
 \apidesc{Delete an incoming/outgoing edge.}
 
 \begin{apient}
-virtual Address Node::addr() const;
+virtual Address addr() const;
 \end{apient}
 \apidesc{Return the address of this node.}
     
 \begin{apient}    
-virtual std::string Node::format() const = 0;
+virtual std::string format() const = 0;
 \end{apient}
 \apidesc{Return the string representation.}
 
 \begin{apient}
-class NodeIterator
+class NodeIterator;
 \end{apient}
 \apidesc{Iterator for nodes. Common iterator operations including \code{++},
 \code{--}, and dereferencing are supported.}
 
 
-\subsection{Edge}
-\definedin{common/h/Edge.h}
+\subsection{Class Edge}
+\definedin{Edge.h}
 
 \begin{apient}
 typedef boost::shared_ptr<Edge> Edge::Ptr;
@@ -178,7 +156,7 @@ void Edge::setTarget(Node::Ptr target);
 \apidesc{Set the source / target node.}
 
 \begin{apient}
-class EdgeIterator
+class EdgeIterator;
 \end{apient}
 \apidesc{Iterator for edges. Common iterator operations including \code{++},
 \code{--}, and dereferencing are supported.}

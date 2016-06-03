@@ -1,25 +1,39 @@
-\subsection{Symbolic Expansion and Evaluation}
+\subsection{Class SymEval}
 \label{sec:symeval}
 
 \definedin{SymEval.h}
 
-Class SymEval provides interfaces for expanding an instruction to its semantic
-representation and generating symbolic expressions for variables defined in a
-user provided slicing result. The common foundation for instruction semantic
-representation and variable symbolic expressions is an Abstract Syntax Tree
-(AST) framework. The instruction semantic representation contains an AST for
-each register written by this instruction. The variable symbolic expression for
-a slice contains an AST for each register defined in the slice and the AST is
-after symbolic substitutions of known variables with corresponding ASTs. We
-first introduce the main interfaces of SymEval and then describe the structure
-of an AST.
+Class SymEval provides interfaces for expanding an instruction to its symbolic
+expression and expanding a slice graph to symbolic expressions for all
+abstract locations defined in this slice.
 
 \begin{apient}
 typedef std::map<Assignment::Ptr, AST::Ptr, AssignmentPtrValueComp> Result_t;
 \end{apient}
-\apidesc{This data type represents the results of symbolic expansion and
-substitution for a slice of assignments, where each Assignment is associated
-with an AST.}
+\apidesc{This data type represents the results of symbolic expansion of a slice.
+Each assignment in the slice has a corresponding AST.}
+
+\begin{apient}
+static std::pair<AST::Ptr, bool> expand(const Assignment::Ptr &assignment, 
+                                        bool applyVisitors = true);
+\end{apient}
+\apidesc{This interface expands a single assignment given by \code{assignment}
+and returns a \code{std::pair}, in which the first element is the AST after
+expansion and the second element is a bool indicating whether the expansion
+succeeded or not. \code{applyVisitors} specifies whether or not to perform stack
+analysis to precisely track stack variables.}
+
+\begin{apient}
+static bool expand(Result_t &res, 
+                   std::set<InstructionPtr> &failedInsns,
+		   bool applyVisitors = true);
+\end{apient}
+\apidesc{This interface expands a set of assignment prepared in \code{res}. The
+corresponding ASTs are written back into \code{res} and all instructions that
+failed during expansion are inserted into \code{failedInsns}. \code{applyVisitors} 
+specifies whether or not to perform stack analysis to precisely track stack variables. 
+This function returns \code{true} when all assignments in \code{res} are
+successfully expanded. }
 
 \begin{center}
 \begin{tabular}{ll}
@@ -36,47 +50,36 @@ SUCCESS & success \\
 \end{center}
 
 \begin{apient}
-static std::pair<AST::Ptr, bool> expand(const Assignment::Ptr &assignment, 
-                                        bool applyVisitors = true);
-\end{apient}
-\apidesc{This interface expands a single Assignment given by \code{assignment}
-and returns a \code{std::pair}, in which the first element is the AST after
-expansion and the second element is a bool indicating whether the expansion
-succeeded or not. \code{applyVisitors} specifies whether or not to perform stack
-analysis to precisely track stack variables.}
-
-
-\begin{apient}
-static bool expand(Result_t &res, 
-                   std::set<InstructionPtr> &failedInsns,
-		   bool applyVisitors = true);
-
-
-\end{apient}
-\apidesc{This interface expands a set of Assignment prepared in \code{res}. The
-corresponding ASTs are written back into \code{res} and all instructions that
-failed during expansion are inserted into \code{failedInsns}. \code{applyVisitors} 
-specifies whether or not to perform stack analysis to precisely track stack variables. 
-This function returns \code{true} when all assignments in \code{res} are
-successfully expanded. }
-
-\begin{apient}
 static Retval_t expand(Dyninst::Graph::Ptr slice, DataflowAPI::Result_t &res);
 \end{apient}
 \apidesc{This interface expands a slice and return an AST for each assignment in
 the slice. This function will perform substitution of ASTs.}
 
-We use ASTs to represent symbolic expressions of each assignment. Our AST
-includes the internal node type \code{ROSEOperation}, which abstracts the particular
-operations performed with its child nodes, and two leave node types,
-\code{Variable} and \code{Constant}.
+We use an AST to represent the symbolic expressions of an assignment. A symbolic
+expression AST contains internal node type \code{RoseAST}, which abstracts the
+operations performed with its child nodes, and two leave node types:
+\code{VariableAST} and \code{ConstantAST}. 
 
+\code{RoseAST}, \code{VariableAST},
+and \code{ConstantAST} all extend class \code{AST}. Besides the methods provided
+by class \code{AST}, \code{RoseAST}, \code{VariableAST},
+and \code{ConstantAST} each have a different data structure associated with
+them.
+
+\begin{apient}
+Variable& VariableAST::val() const;
+Constant& ConstantAST::val() const;
+ROSEOperation & RoseAST::val() const;
+\end{apient}
+
+We now describe data structure \code{Variable}, \code{Constant}, and
+\code{ROSEOperation}.
+ 
 \begin{apient}
 struct Variable;
 \end{apient}
-\apidesc{A \code{Variable} represents a register or a memory location at a
-particular address. The same register at different addresses is considered as
-different Variable objects.}
+\apidesc{A \code{Variable} represents an abstract region at a particular
+address.}
 
 \begin{apient}
 Variable::Variable();
@@ -94,14 +97,15 @@ bool Variable::operator<(const Variable &rhs) const;
 addresses are equal.}
 
 \begin{apient}
-const std::string format() const;
+const std::string Variable::format() const;
 \end{apient}
 \apidesc{Return the string representation of the Variable.}
 
 \begin{apient}
-AbsRegion reg;
-Address addr;
+AbsRegion Variable::reg;
+Address Variable::addr;
 \end{apient}
+\apidesc{The abstraction region and the address of this Variable.}
 
 \begin{apient}
 struct Constant;
@@ -128,11 +132,17 @@ const std::string Constant::format() const;
 \apidesc{Return the string representation of the Constant object.}
 
 \begin{apient}
-uint64\_t val;
-size\_t size;
+uint64_t Constant::val;
+size_t Constant::size;
+\end{apient}
+\apidesc{The numerical value and bit size of this value.}
+
+\begin{apient}
+struct ROSEOperation;
 \end{apient}
 
-// Define the operations used by ROSE
+\code{ROSEOperation} defines the following operations and we represent the
+semantics of all instructions with these operations.
 
 \begin{center}
 \begin{tabular}{ll}
@@ -168,8 +178,8 @@ ROSEOperation::Op & Meaning \\
     sModOp & Signed modular operation \\
     uDivOp & Unsigned division operation \\    
     uModOp & Unsigned modular operation \\
-    extendOp & Extend operation \\
-    extendMSBOp & Extend Msb operation \\
+    extendOp & Zero extend operation \\
+    extendMSBOp & Extend the most significant bit operation \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -191,17 +201,25 @@ const std::string ROSEOperation::format() const;
 \apidesc{Return the string representation.}
 
 \begin{apient}
-Op op;
-size_t size;
+ROSEOperation::Op ROSEOperation::op;
+size_t ROSEOperation::size;
 \end{apient}
 
+\subsection{Class ASTVisitor}
 
-\begin{apient} 
-DEF_AST_LEAF_TYPE(BottomAST, bool);
-DEF_AST_LEAF_TYPE(ConstantAST, Constant);
-DEF_AST_LEAF_TYPE(VariableAST, Variable);
-DEF_AST_INTERNAL_TYPE(RoseAST, ROSEOperation);
+The ASTVisitor class defines callback functions to apply during visiting an AST for
+each AST node type. Users can inherit this class to write customized analyses
+for ASTs.
+
+\begin{apient}
+typedef boost::shared_ptr<AST> ASTVisitor::ASTPtr;
+virtual ASTVisitor::ASTPtr ASTVisitor::visit(AST *);
+virtual ASTVisitor::ASTPtr ASTVisitor::visit(DataflowAPI::BottomAST *);
+virtual ASTVisitor::ASTPtr ASTVisitor::visit(DataflowAPI::ConstantAST *);
+virtual ASTVisitor::ASTPtr ASTVisitor::visit(DataflowAPI::VariableAST *);
+virtual ASTVisitor::ASTPtr ASTVisitor::visit(DataflowAPI::RoseAST *);
+virtual ASTVisitor::ASTPtr ASTVisitor::visit(StackAST *);
 \end{apient}
-
-
+\apidesc{Callback functions for visiting each type of AST node. The default
+behavior is returning the input parameter.}
 
