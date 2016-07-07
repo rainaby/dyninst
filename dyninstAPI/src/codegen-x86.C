@@ -498,7 +498,6 @@ unsigned pcRelJCC::apply(Address addr)
    GET_PTR(newInsn, *gen);
 
    addr += copy_prefixes_nosize_or_segments(origInsn, newInsn, insnType); 
-   
 
    //8-bit jump
    potential = addr + 2;
@@ -674,28 +673,29 @@ unsigned pcRelData::apply(Address addr)
    // b) 32-bit absolute version (where 32-bit relative would fail but we're low)
    // c) 64-bit absolute version
    const unsigned char *origInsn = orig_instruc.ptr();
-   unsigned insnType = orig_instruc.type();
    unsigned insnSz = orig_instruc.size();   
    bool is_data_abs64 = false;
-   unsigned nPrefixes = count_prefixes(insnType);
    signed long newDisp = data_addr - addr;
    unsigned char *orig_loc;
    GET_PTR(newInsn, *gen);
    orig_loc = newInsn;
 
-   // count opcode bytes (1 or 2)
-   unsigned nOpcodeBytes = 1;
-   if (*(origInsn + nPrefixes) == 0x0F)
-      nOpcodeBytes = 2;
-   if ((*(origInsn + nPrefixes) == 0x0F) && (*(origInsn + nPrefixes + 1) == 0x38 || *(origInsn + nPrefixes + 1) == 0x3A))
-   	  nOpcodeBytes = 3;
-   
+   const unsigned char* origInsnStart = origInsn;
+
+   ia32_instruction instruction;
+   if(ia32_decode(0, origInsn, instruction))
+      assert(!"Decoding failure (apply)");
+
+   /* Get opcode size*/
+   size_t opcode_sz = instruction.getOpcodeSize();
+   size_t prefix_sz = instruction.getPrefixSize();
+
    Register pointer_reg = (Register)-1;
      
    if (!is_disp32(newDisp+insnSz) && !is_addr32(data_addr)) {
       // Case C: replace with 64-bit.
       is_data_abs64 = true;
-      unsigned char mod_rm = *(origInsn + nPrefixes + nOpcodeBytes);
+      unsigned char mod_rm = *(origInsn + prefix_sz + opcode_sz);
       pointer_reg = (mod_rm & 0x38) != 0 ? 0 : 3;
       SET_PTR(newInsn, *gen);
       emitPushReg64(pointer_reg, *gen);
@@ -703,23 +703,11 @@ unsigned pcRelData::apply(Address addr)
       REGET_PTR(newInsn, *gen);
    }
 
-   const unsigned char* origInsnStart = origInsn;
+   /** Copy the prefix and the opcode */
+   memcpy(newInsn, origInsn, prefix_sz + opcode_sz);
+   newInsn += prefix_sz + opcode_sz;
+   origInsn += prefix_sz + opcode_sz;
 
-   // In other cases, we can rewrite the insn directly; in the 64-bit case, we
-   // still need to copy the insn
-   addr += copy_prefixes(origInsn, newInsn, insnType);
-
-   if (*origInsn == 0x0F) {
-      *newInsn++ = *origInsn++;
-       // 3-byte opcode support
-       if (*origInsn == 0x38 || *origInsn == 0x3A) {
-           *newInsn++ = *origInsn++;
-       }
-   }
-     
-   // And the normal opcode
-   *newInsn++ = *origInsn++;
-   
    if (is_data_abs64) {
       // change ModRM byte to use [pointer_reg]: requires
       // us to change last three bits (the r/m field)
@@ -851,8 +839,9 @@ bool insnCodeGen::generateMem(codeGen &gen,
    class ia32_locations loc;
 
    ia32_instruction orig_instr(memacc, &cond, &loc);
-   ia32_decode(IA32_DECODE_MEMACCESS | IA32_DECODE_CONDITION,
-               insn_ptr, orig_instr);
+   if(ia32_decode(IA32_DECODE_MEMACCESS | IA32_DECODE_CONDITION, 
+               insn_ptr, orig_instr))
+       return false;
 
    if (orig_instr.getPrefix()->getPrefix(1) != 0) {
 	   //The instruction accesses memory via segment registers.  Disallow.
@@ -1179,12 +1168,12 @@ bool insnCodeGen::modifyData(Address targetAddr, instruction &insn, codeGen &gen
 
     /******************************************* prefix/opcode ****************/
 
-    ia32_instruction instruct;
 
     /**
      * This information is generated during ia32_decode. To make this faster
      * We are only going to do the prefix and opcode decodings
      */
+    ia32_instruction instruct;
     if(!ia32_decode(0, origInsn, instruct))
         assert(!"Couldn't decode prefix of already known instruction!\n");
 
@@ -1265,8 +1254,9 @@ bool insnCodeGen::modifyData(Address targetAddr, instruction &insn, codeGen &gen
     return true;
 }
 
-bool insnCodeGen::modifyDisp(signed long newDisp, instruction &insn, codeGen &gen, Architecture arch, Address addr) {
-
+bool insnCodeGen::modifyDisp(signed long newDisp, instruction &insn, 
+        codeGen &gen, Architecture arch, Address addr) 
+{
     relocation_cerr << "modifyDisp " << std::hex << addr
         << std::dec << ", newDisp = " << newDisp << endl;
 
@@ -1293,11 +1283,11 @@ bool insnCodeGen::modifyDisp(signed long newDisp, instruction &insn, codeGen &ge
 
     /******************************************* prefix/opcode ****************/
    
-    ia32_instruction instruct; 
     /**
      * This information is generated during ia32_decode. To make this faster
      * We are only going to do the prefix and opcode decodings
      */
+    ia32_instruction instruct; 
     if(!ia32_decode(0, origInsn, instruct))
         assert(!"Couldn't decode prefix of already known instruction!\n");
 
