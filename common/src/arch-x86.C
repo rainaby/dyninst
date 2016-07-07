@@ -60,6 +60,11 @@
 // #define VEX_DEBUG
 // #define VEX_PEDANTIC
 
+/* Whether or not to dump instruction information on decode failure */
+#define DECODE_FAILURE_DUMP
+/* Throw an assert when decoding errors are encountered (debugging) */
+#define DECODE_FAILURE_ASSERT
+
 using namespace std;
 using namespace boost::assign;
 
@@ -8296,6 +8301,15 @@ int ia32_decode(unsigned int capa, const unsigned char* addr, ia32_instruction& 
         instruct.size = 1;
 	    instruct.entry = NULL;
         instruct.legacy_type = ILLEGAL;
+
+#ifdef DECODE_FAILURE_DUMP
+        fprintf(stderr, "PREFIX DECODING FAILURE: %02x %02x %02x %02x %02x\n",
+                addr[0], addr[1], addr[2], addr[3], addr[4]);
+#endif
+
+#ifdef DECODE_FAILURE_ASSERT
+        assert(!"Decoding failure!\n");
+#endif
         return -1;
     }
 
@@ -8311,6 +8325,20 @@ int ia32_decode(unsigned int capa, const unsigned char* addr, ia32_instruction& 
             /* FPU decoding success. Return immediately */
             return 0;
         }
+
+#ifdef DECODE_FAILURE_DUMP
+        fprintf(stderr, "OPCODE DECODING FAILURE.\n");
+        fprintf(stderr, "PREFIX BYTES:");
+        for(unsigned int x = 0;x < instruct.getPrefixSize();x++)
+            fprintf(stderr, " %02x", addr_orig[x]);
+        fprintf(stderr, "\n");
+        fprintf(stderr, "OPCODE BYTES: %02x %02x %02x\n",
+                addr[0], addr[1], addr[2]);
+#endif
+
+#ifdef DECODE_FAILURE_ASSERT
+        assert(!"Decoding failure!\n");
+#endif
 
         /* Opcode decoding failed */
         instruct.entry = NULL;
