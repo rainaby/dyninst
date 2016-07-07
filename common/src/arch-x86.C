@@ -8279,7 +8279,7 @@ int getOperSz(const ia32_prefixes &pref)
     else return 2;
 }
 
-ia32_instruction& ia32_decode(unsigned int capa, const unsigned char* addr, ia32_instruction& instruct)
+int ia32_decode(unsigned int capa, const unsigned char* addr, ia32_instruction& instruct)
 {
     const unsigned char* addr_orig = addr;
     ia32_prefixes& pref = instruct.prf;
@@ -8296,14 +8296,8 @@ ia32_instruction& ia32_decode(unsigned int capa, const unsigned char* addr, ia32
         instruct.size = 1;
 	    instruct.entry = NULL;
         instruct.legacy_type = ILLEGAL;
-        return instruct;
+        return -1;
     }
-
-    // printf("PREFIXES(%d): ", instruct.size);
-
-    // int x;
-    // for(x = 0;x < instruct.size;x++)
-        // printf("%x ", addr[x]);
 
     /* Skip the prefixes so that we don't decode them again */
     addr = addr_orig + instruct.size;
@@ -8315,18 +8309,14 @@ ia32_instruction& ia32_decode(unsigned int capa, const unsigned char* addr, ia32
         if(opcode_decoding > 0)
         {
             /* FPU decoding success. Return immediately */
-            return instruct;
+            return 0;
         }
+
         /* Opcode decoding failed */
         instruct.entry = NULL;
         instruct.legacy_type = ILLEGAL;
-        return instruct;
+        return -1;
     }
-
-    // printf("OP(%d): ", instruct.size - x);
-
-    // for(;x < instruct.size;x++)
-        // printf("%x ", addr_orig[x]);
 
     if(!gotit)
         assert(!"Didn't find a valid instruction, however decode suceeded.");
@@ -8336,10 +8326,6 @@ ia32_instruction& ia32_decode(unsigned int capa, const unsigned char* addr, ia32
 
     /* Do the operand decoding */
     ia32_decode_operands(pref, *gotit, addr, instruct, instruct.mac);
-
-    // printf("OPERANDS(%d): ", instruct.size - x);
-    // for(;x < instruct.size;x++)
-        // printf("%x ", addr_orig[x]);
 
     /* Decode the memory accesses if requested */
     if(capa & IA32_DECODE_MEMACCESS) 
@@ -8560,7 +8546,7 @@ ia32_instruction& ia32_decode(unsigned int capa, const unsigned char* addr, ia32
     }
 
     instruct.entry = gotit;
-    return instruct;
+    return 0; /* Decoding success */
 }
 
 int ia32_decode_opcode(unsigned int capa, const unsigned char* addr, 
@@ -8587,14 +8573,14 @@ int ia32_decode_opcode(unsigned int capa, const unsigned char* addr,
 
         switch(pref.vex_type)
         {
-            case VEX_TYPE_VEX2:
+            case VEX_PREFIX_VEX2:
                 /* This is a VEX2 prefixed instruction -- start in the twoByteMap */
                 gotit = &twoByteMap[idx];
                 sseidx = vex3_simdop_convert[0][pref.vex_pp];
                 break;
 
-            case VEX_TYPE_VEX3:
-            case VEX_TYPE_EVEX:
+            case VEX_PREFIX_VEX3:
+            case VEX_PREFIX_EVEX:
                 /* Make sure we start in the proper table */
                 switch(pref.vex_m_mmmm)
                 {
@@ -8893,6 +8879,7 @@ int ia32_decode_opcode(unsigned int capa, const unsigned char* addr,
 
                     if(gotit_ret)
                         *gotit_ret = gotit;
+                    instruct.opcode_size = instruct.size - pref.getCount();
                     return 1; /* Decoding success */
                 }
 
@@ -8919,7 +8906,7 @@ int ia32_decode_opcode(unsigned int capa, const unsigned char* addr,
                 break;
             case t_vexw:
                 /* This MUST have a vex prefix and must NOT be VEX2 */
-                if(!pref.vex_present || pref.vex_type == VEX_TYPE_VEX2)
+                if(!pref.vex_present || pref.vex_type == VEX_PREFIX_VEX2)
                 {
 #ifdef VEX_PEDANTIC
                     assert(!"VEXW can only be used by vex prefixed instructions!\n");
@@ -8979,11 +8966,11 @@ int ia32_decode_opcode(unsigned int capa, const unsigned char* addr,
                 {
                     switch(pref.vex_type)
                     {
-                        case VEX_TYPE_VEX2:
-                        case VEX_TYPE_VEX3:
-                        case VEX_TYPE_EVEX:
+                        case VEX_PREFIX_VEX2:
+                        case VEX_PREFIX_VEX3:
+                        case VEX_PREFIX_EVEX:
                             break;
-                        case VEX_TYPE_NONE:
+                        case VEX_PREFIX_NONE:
                             assert(!"pref.vex_present set but no vex prefix!\n");
                         default:
                             assert(!"Invalid VEX prefix for sseVexMult table.\n");
@@ -9019,6 +9006,7 @@ int ia32_decode_opcode(unsigned int capa, const unsigned char* addr,
     instruct.legacy_type = gotit->legacyType;
 
     /* Addr points after the opcode, and the size has been adjusted accordingly */
+    instruct.opcode_size = instruct.size - pref.getCount();
     if(instruct.loc)
     {
         instruct.loc->opcode_size = instruct.size - pref.getCount();
@@ -9946,20 +9934,20 @@ static const unsigned char sse_prefix_ter[256] = {
 
 #define REX_ISREX(x) (((x) >> 4) == 4)
 
-bool is_sse_opcode(unsigned char byte1, unsigned char byte2, unsigned char byte3) {
+static bool is_sse_opcode(unsigned char byte1, unsigned char byte2, unsigned char byte3) 
+{
 	if((byte1==0x0F && sse_prefix[byte2])
 			|| (byte1==0x0F && byte2==0x38 && sse_prefix_bis[byte3])
 			|| (byte1==0x0F && byte2==0x3A && sse_prefix_ter[byte3]))
 		return true;
-	
 	return false;
 }
 
-// FIXME: lookahead might blow up...
 bool ia32_decode_prefixes(const unsigned char* addr, ia32_instruction& instruct)
 {
     ia32_prefixes& pref = instruct.prf;
     ia32_locations* loc = instruct.loc; 
+
     /* Initilize the prefix */
     memset(pref.prfx, 0, 5);
     pref.count = 0;
@@ -9967,7 +9955,7 @@ bool ia32_decode_prefixes(const unsigned char* addr, ia32_instruction& instruct)
     bool in_prefix = true;
 
     pref.vex_present = false;
-    pref.vex_type = VEX_TYPE_NONE;
+    pref.vex_type = VEX_PREFIX_NONE;
     memset(pref.vex_prefix, 0, 5);
     pref.vex_sse_mult = -1;
     pref.vex_vvvv_reg = -1;
@@ -10040,7 +10028,7 @@ bool ia32_decode_prefixes(const unsigned char* addr, ia32_instruction& instruct)
 
             case PREFIX_EVEX:
                 pref.vex_present = true;
-                pref.vex_type = VEX_TYPE_EVEX;
+                pref.vex_type = VEX_PREFIX_EVEX;
                 memmove(&pref.vex_prefix, addr + 1, 3);
                 pref.vex_sse_mult = 2;
                 pref.vex_vvvv_reg = EVEXGET_VVVV(pref.vex_prefix[1], pref.vex_prefix[2]);
@@ -10098,7 +10086,7 @@ bool ia32_decode_prefixes(const unsigned char* addr, ia32_instruction& instruct)
 
             case PREFIX_VEX3:
                 pref.vex_present = true;
-                pref.vex_type = VEX_TYPE_VEX3;
+                pref.vex_type = VEX_PREFIX_VEX3;
                 memmove(&pref.vex_prefix, addr + 1, 2);
                 pref.vex_sse_mult = 1;
                 pref.vex_vvvv_reg = VEXGET_VVVV(pref.vex_prefix[1]);
@@ -10135,7 +10123,7 @@ bool ia32_decode_prefixes(const unsigned char* addr, ia32_instruction& instruct)
                 break;
             case PREFIX_VEX2:
                 pref.vex_present = true;
-                pref.vex_type = VEX_TYPE_VEX2;
+                pref.vex_type = VEX_PREFIX_VEX2;
                 pref.vex_prefix[0] = addr[1]; /* Only 1 byte for VEX2 */
                 pref.vex_sse_mult = 0;
                 pref.vex_vvvv_reg = VEXGET_VVVV(pref.vex_prefix[0]);
@@ -10205,45 +10193,6 @@ bool ia32_decode_prefixes(const unsigned char* addr, ia32_instruction& instruct)
             loc->num_prefixes = pref.count;
         instruct.size = pref.count;
     }
-
-#if 0 /* Print out prefix information (very verbose) */
-    fprintf(stderr, "Prefix buffer: %x %x %x %x %x\n", pref.prfx[0], pref.prfx[1], 
-            pref.prfx[2], pref.prfx[3], pref.prfx[4]);
-    fprintf(stderr, "opcode prefix: 0x%x\n", pref.opcode_prefix);
-    fprintf(stderr, "REX  W: %s  R: %s  X: %s  B: %s\n",
-            pref.rexW() ? "yes" : "no", pref.rexR() ? "yes" : "no", 
-            pref.rexX() ? "yes" : "no", pref.rexB() ? "yes" : "no");
-
-    fprintf(stderr, "IS VEX PRESENT?  %s\n", pref.vex_present ? "YES" : "NO");
-    if(pref.vex_present)
-    {
-        fprintf(stderr, "VEX IS PRESENT: %d\n", 
-                pref.vex_type);
-        fprintf(stderr, "VEX BYTES:      %x %x %x %x %x\n",
-                pref.vex_prefix[0], pref.vex_prefix[1], pref.vex_prefix[2],
-                pref.vex_prefix[3], pref.vex_prefix[4]);
-        fprintf(stderr, "VEX SSE MULT:   %d  0x%x\n", 
-                pref.vex_sse_mult, pref.vex_sse_mult);
-        fprintf(stderr, "VEX_VVVV:       %d  0x%x\n", 
-                pref.vex_vvvv_reg, pref.vex_vvvv_reg);
-        fprintf(stderr, "VEX_LL:         %d  0x%x\n", 
-                pref.vex_ll, pref.vex_ll);
-        fprintf(stderr, "VEX_PP:         %d  0x%x\n", 
-                pref.vex_pp, pref.vex_pp);
-        fprintf(stderr, "VEX_M-MMMM:     %d  0x%x\n", 
-                pref.vex_m_mmmm, pref.vex_m_mmmm);
-        fprintf(stderr, "VEX_W:          %d  0x%x\n", 
-                pref.vex_w, pref.vex_w);
-        fprintf(stderr, "VEX_r:          %d  0x%x\n", 
-                pref.vex_r, pref.vex_r);
-        fprintf(stderr, "VEX_R:          %d  0x%x\n", 
-                pref.vex_R, pref.vex_R);
-        fprintf(stderr, "VEX_x:          %d  0x%x\n", 
-                pref.vex_x, pref.vex_x);
-        fprintf(stderr, "VEX_b:          %d  0x%x\n", 
-                pref.vex_b, pref.vex_b);
-	}
-#endif
 
     return !err;
 }
@@ -10347,13 +10296,13 @@ unsigned int ia32_emulate_old_type(ia32_instruction& instruct)
   {
     switch(pref.vex_type)
     {
-        case VEX_TYPE_VEX2:
+        case VEX_PREFIX_VEX2:
             insnType |= PREFIX_AVX;
             break;
-        case VEX_TYPE_VEX3:
+        case VEX_PREFIX_VEX3:
             insnType |= PREFIX_AVX2;
             break;
-        case VEX_TYPE_EVEX:
+        case VEX_PREFIX_EVEX:
             insnType |= PREFIX_AVX512;
             break;
         default:
@@ -10384,26 +10333,10 @@ unsigned int ia32_emulate_old_type(ia32_instruction& instruct)
   return insnType;
 }
 
-/* decode instruction at address addr, return size of instruction */
-unsigned get_instruction(const unsigned char* addr, unsigned &insnType,
-			 const unsigned char** op_ptr)
-{
-  int r1;
-
-  ia32_instruction i;
-  ia32_decode(0, addr, i);
-
-  r1 = i.getSize();
-  insnType = ia32_emulate_old_type(i);
-  if (op_ptr)
-      *op_ptr = addr + i.getPrefixCount();
-
-  return r1;
-}
-
 // find the target of a jump or call
 Address get_target(const unsigned char *instr, unsigned type, unsigned size,
-		   Address addr) {
+		   Address addr) 
+{
 #if defined(os_vxworks)
     Address ret;
     // FIXME requires vxworks in Dyninst
@@ -10415,53 +10348,56 @@ Address get_target(const unsigned char *instr, unsigned type, unsigned size,
 }
 
 // get the displacement of a jump or call
-int displacement(const unsigned char *instr, unsigned type) {
+int displacement(const unsigned char *instr, unsigned type) 
+{
+    int disp = 0;
 
-  int disp = 0;
-  //skip prefix
-  instr = skip_headers( instr );
+    ia32_instruction instruction;
+    if(ia32_decode(0, instr, instruction))
+        assert(!"Failed to decode instruction for displacement value.");
 
-  if (type & REL_D_DATA) {
-    // Some SIMD instructions have a mandatory 0xf2 prefix; the call to skip_headers
-    // doesn't skip it and I don't feel confident in changing that - bernat, 22MAY06
-      // 0xf3 as well...
-      // Some 3-byte opcodes start with 0x66... skip
-      if (*instr == 0x66) instr++;
-      if (*instr == 0xf2) instr++;
-      else if (*instr == 0xf3) instr++;
-    // And the "0x0f is a 2-byte opcode" skip
-    if (*instr == 0x0F) {
+    /* Skip all prefixes */
+    instr += instruction.getPrefixSize();
+
+    if(type & REL_D_DATA) 
+    {
+        /* Skip opcode */
+        instr += instruction.getOpcodeSize();
+        /* Skip modR/M */
         instr++;
-        // And the "0x38 or 0x3A is a 3-byte opcode" skip
-        if(*instr == 0x38 || *instr == 0x3A)  instr++;
-    }
-    // Skip the instr opcode and the MOD/RM byte
-    disp = *(const int *)(instr+2);
-  } else if (type & IS_JUMP) {
-    if (type & REL_B) {
-      disp = *(const char *)(instr+1);
-    } else if (type & REL_W) {
-      disp = *(const short *)(instr+1); // skip opcode
-    } else if (type & REL_D) {
-      disp = *(const int *)(instr+1);
-    }
-  } else if (type & IS_JCC) {
-    if (type & REL_B) {
-      disp = *(const char *)(instr+1);
-    } else if (type & REL_W) {
-      disp = *(const short *)(instr+2); // skip two byte opcode
-    } else if (type & REL_D) {
-      disp = *(const int *)(instr+2);   // skip two byte opcode
-    }
-  } else if (type & IS_CALL) {
-    if (type & REL_W) {
-      disp = *(const short *)(instr+1); // skip opcode
-    } else if (type & REL_D) {
-      disp = *(const int *)(instr+1);
-    }
-  }  
 
-  return disp;
+        disp = *(const int *)(instr);
+    } else if(type & IS_JUMP) 
+    {
+        if(type & REL_B) 
+        {
+            disp = *(const char *)(instr + 1);
+        } else if(type & REL_W) {
+            disp = *(const short *)(instr + 1); // skip opcode
+        } else if(type & REL_D) {
+            disp = *(const int *)(instr + 1);
+        }
+    } else if(type & IS_JCC) 
+    {
+        if(type & REL_B) 
+        {
+            disp = *(const char *)(instr + 1);
+        } else if(type & REL_W) {
+            disp = *(const short *)(instr + 2); // skip two byte opcode
+        } else if(type & REL_D) {
+            disp = *(const int *)(instr + 2);   // skip two byte opcode
+        }
+    } else if(type & IS_CALL) 
+    {
+        if(type & REL_W) 
+        {
+            disp = *(const short *)(instr + 1); // skip opcode
+        } else if(type & REL_D) {
+            disp = *(const int *)(instr + 1);
+        }
+    }  
+
+    return disp;
 }
 
 int count_prefixes(unsigned insnType) {
@@ -10598,16 +10534,6 @@ void decode_SIB(unsigned sib, unsigned& scale, Register& index_reg, Register& ba
   base_reg = sib & 0x07;
 }
 
-const unsigned char*
-skip_headers(const unsigned char* addr, ia32_instruction* instruct)
-{
-    ia32_instruction tmp;
-    if(!instruct)
-        instruct = &tmp;
-    ia32_decode_prefixes(addr, *instruct);
-    return addr + instruct->getSize();
-}
-
 bool insn_hasSIB(unsigned ModRMbyte,unsigned& Mod,unsigned& Reg,unsigned& RM){
     Mod = (ModRMbyte >> 6) & 0x03;
     Reg = (ModRMbyte >> 3) & 0x07;
@@ -10622,7 +10548,6 @@ bool insn_hasDisp8(unsigned ModRMbyte){
 
 bool insn_hasDisp32(unsigned ModRMbyte){
     unsigned Mod = (ModRMbyte >> 6) & 0x03;
-    /* unsigned Reg = (ModRMbyte >> 3) & 0x07; */
     unsigned RM = ModRMbyte & 0x07;
     return (Mod == 0 && RM == 5) || (Mod == 2);
 }
@@ -10768,47 +10693,6 @@ bool isStackFramePrecheck_msvs( const unsigned char *buffer )
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
    return (gap_initial_bytes[*buffer] != 0);
 }  
-
-/*
-bool isStackFramePreamble( instruction& insn1 )
-{       
-    instruction insn2, insn3;
-    insn2.setInstruction( insn1.ptr() + insn1.size() );       
-    insn3.setInstruction( insn2.ptr() + insn2.size() );
-
-    const unsigned char* p = insn1.op_ptr();
-    const unsigned char* q = insn2.op_ptr();
-    const unsigned char* r = insn3.op_ptr();
-    
-    unsigned Mod1_1 =  ( q[ 1 ] >> 3 ) & 0x07;
-    unsigned Mod1_2 =  q[ 1 ] & 0x07;
-    unsigned Mod2_1 =  ( r[ 1 ] >> 3 ) & 0x07;
-    unsigned Mod2_2 =  r[ 1 ] & 0x07;
-
-    if( insn1.size() != 1 )
-    {
-        return false;  //shouldn't need this, but you never know
-    }
-    
-    if( p[ 0 ] == PUSHEBP  )
-    {   
-        // Looking for mov %esp -> %ebp in one of the two
-        // following instructions.  There are two ways to encode 
-        // mov %esp -> %ebp: as '0x8b 0xec' or as '0x89 0xe5'.  
-        if( insn2.isMoveRegMemToRegMem() && 
-            ((Mod1_1 == 0x05 && Mod1_2 == 0x04) ||
-             (Mod1_1 == 0x04 && Mod1_2 == 0x05)))
-            return true;
-
-        if( insn3.isMoveRegMemToRegMem() && 
-            ((Mod2_1 == 0x05 && Mod2_2 == 0x04) ||
-             (Mod2_1 == 0x04 && Mod2_2 == 0x05)))
-            return true;
-    }
-    
-    return false;
-}
-*/
 
 instruction *instruction::copy() const {
     // Or should we copy? I guess it depends on who allocated

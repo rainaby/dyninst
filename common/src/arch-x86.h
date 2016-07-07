@@ -230,10 +230,10 @@ enum AMD64_REG_NUMBERS {
 #define WRITE_OP 1
 
 /* operand sizes */
-#define byteSzB (1)    /* size of a byte operand */
-#define wordSzB (2)    /* size of a word operand */
-#define dwordSzB (4)   /* size of a dword operand */
-#define qwordSzB (8)   /* size of a qword operand */
+#define byteSzB (1)      /* size of a byte operand */
+#define wordSzB (2)      /* size of a word operand */
+#define dwordSzB (4)     /* size of a dword operand */
+#define qwordSzB (8)     /* size of a qword operand */
 #define dqwordSzB (16)   /* size of a double qword (oword) operand */
 
 /* The following values are or'ed together to form an instruction type descriptor */
@@ -455,17 +455,17 @@ enum {
   RepGroup = 0
 };
 
-#ifndef VEX_PREFIX_MASKS
-#define VEX_PREFIX_MASKS
-
 /**
  * Enum that differentiates different types of VEX prefixed instructions.
  * This is also used as the demultiplexer for the sseVexMult table so the
  * bindings should not be changed.
  */
-enum VEX_TYPE
+enum VEX_PREFIX_TYPE
 {
-    VEX_TYPE_NONE=0, VEX_TYPE_VEX2, VEX_TYPE_VEX3, VEX_TYPE_EVEX
+    VEX_PREFIX_NONE = 0,
+    VEX_PREFIX_VEX2, 
+    VEX_PREFIX_VEX3, 
+    VEX_PREFIX_EVEX
 };
 
 /* Masks to help decode vex prefixes */
@@ -517,28 +517,24 @@ enum VEX_TYPE
             (((unsigned char)~(b) & 0x08) << 1)
 #define EVEXGET_V(b) (((unsigned char)~(b) & 0x08) << 1)
 
-#endif
+#define PREFIX_LOCK     (unsigned char)(0xF0)
+#define PREFIX_REPNZ    (unsigned char)(0xF2)
+#define PREFIX_REP      (unsigned char)(0xF3)
 
-#ifndef PREFIX_LOCK
-#define PREFIX_LOCK   (unsigned char)(0xF0)
-#define PREFIX_REPNZ  (unsigned char)(0xF2)
-#define PREFIX_REP    (unsigned char)(0xF3)
+#define PREFIX_SEGCS    (unsigned char)(0x2E)
+#define PREFIX_SEGSS    (unsigned char)(0x36)
+#define PREFIX_SEGDS    (unsigned char)(0x3E)
+#define PREFIX_SEGES    (unsigned char)(0x26)
+#define PREFIX_SEGFS    (unsigned char)(0x64)
+#define PREFIX_SEGGS    (unsigned char)(0x65)
 
-#define PREFIX_SEGCS  (unsigned char)(0x2E)
-#define PREFIX_SEGSS  (unsigned char)(0x36)
-#define PREFIX_SEGDS  (unsigned char)(0x3E)
-#define PREFIX_SEGES  (unsigned char)(0x26)
-#define PREFIX_SEGFS  (unsigned char)(0x64)
-#define PREFIX_SEGGS  (unsigned char)(0x65)
+#define PREFIX_XOP      (unsigned char)(0x8F)
 
-#define PREFIX_XOP  (unsigned char)(0x8F)
+#define PREFIX_BRANCH0  (unsigned char)(0x2E)
+#define PREFIX_BRANCH1  (unsigned char)(0x3E)
 
-#define PREFIX_BRANCH0 (unsigned char)(0x2E)
-#define PREFIX_BRANCH1 (unsigned char)(0x3E)
-
-#define PREFIX_SZOPER  (unsigned char)(0x66)
-#define PREFIX_SZADDR  (unsigned char)(0x67)
-#endif
+#define PREFIX_SZOPER   (unsigned char)(0x66)
+#define PREFIX_SZADDR   (unsigned char)(0x67)
 
 COMMON_EXPORT void ia32_set_mode_64(bool mode);
 COMMON_EXPORT bool ia32_is_mode_64();
@@ -640,7 +636,6 @@ enum { sNONE=0, // the instruction does something that cannot be classified as r
 /* This should equal the first operand semantic where 4 operands are used. */
 #define s4OP s1W2R3R4R
 
-
 struct modRMByte {
   unsigned mod : 2;
   unsigned reg : 3;
@@ -653,13 +648,15 @@ struct sIBByte {
   unsigned base  : 3;
 };
 
+/* Forward declare the ia32_instruction class */
 class ia32_instruction;
 
 class ia32_prefixes
 {
-  friend COMMON_EXPORT bool ia32_decode_prefixes(const unsigned char* addr, ia32_instruction& insn);
-  friend bool ia32_decode_rex(const unsigned char* addr, ia32_prefixes&,
-                              ia32_locations *loc);
+  friend COMMON_EXPORT bool ia32_decode_prefixes(
+          const unsigned char* addr, ia32_instruction& insn);
+  friend bool ia32_decode_rex(const unsigned char* addr, 
+          ia32_prefixes&, ia32_locations *loc);
  private:
   unsigned int count;
   // At most 4 prefixes are allowed for Intel 32-bit CPUs
@@ -684,7 +681,7 @@ class ia32_prefixes
 
   /* Because VEX fields are based on the VEX type, they are decoded immediately. */
   bool vex_present; /* Does this instruction have a vex prefix?  */
-  VEX_TYPE vex_type; /* If there is a vex prefix present, what type is it? */
+  VEX_PREFIX_TYPE vex_type; /* If there is a vex prefix present, what type is it? */
   unsigned char vex_prefix[5]; /* Support up to EVEX (VEX-512) */
   int vex_sse_mult; /* index for sse multiplexer table */
   int vex_vvvv_reg; /* The register specified by this prefix. */
@@ -806,7 +803,8 @@ struct ia32_entry {
   COMMON_EXPORT const char* name(ia32_locations* locs = NULL);
   COMMON_EXPORT entryID getID(ia32_locations* locs = NULL) const;
   // returns true if any flags are read/written, false otherwise
-  COMMON_EXPORT bool flagsUsed(std::set<Dyninst::MachRegister>& flagsRead, std::set<Dyninst::MachRegister>& flagsWritten,
+  COMMON_EXPORT bool flagsUsed(std::set<Dyninst::MachRegister>& flagsRead, 
+          std::set<Dyninst::MachRegister>& flagsWritten,
 		 ia32_locations* locs = NULL);
   entryID id;
   unsigned int otable;       // which opcode table is next; if t_done it is the current one
@@ -841,7 +839,7 @@ class ia32_instruction
                                             const char* addr, 
                                             ia32_instruction& instruct);
   friend COMMON_EXPORT bool ia32_decode_prefixes(const unsigned char* addr, ia32_instruction& insn);
-  friend COMMON_EXPORT ia32_instruction& ia32_decode(unsigned int capa, const unsigned char* addr,
+  friend COMMON_EXPORT int ia32_decode(unsigned int capa, const unsigned char* addr,
 		  		       ia32_instruction& instruct);
   friend COMMON_EXPORT int ia32_decode_opcode(unsigned int capa,
                         const unsigned char* addr, ia32_instruction& instruct, 
@@ -860,6 +858,7 @@ class ia32_instruction
                                           ia32_memacc *mac);
 
   unsigned int   size;
+  unsigned int   opcode_size;
   ia32_prefixes  prf;
   ia32_memacc    *mac;
   ia32_condition *cond;
@@ -872,13 +871,14 @@ class ia32_instruction
  public:
   ia32_instruction(ia32_memacc* _mac = NULL, ia32_condition* _cnd = NULL,
                    ia32_locations *loc_ = NULL)
-    : size(0), prf(), mac(_mac), cond(_cnd), entry(NULL), loc(loc_),
+    : size(0), opcode_size(0), prf(), mac(_mac), cond(_cnd), entry(NULL), loc(loc_),
       legacy_type(0), rip_relative_data(false)
   {}
 
   ia32_entry * getEntry() { return entry; }
   unsigned int getSize() const { return size; }
-  unsigned int getPrefixCount() const { return prf.getCount(); }
+  unsigned int getPrefixSize() const { return prf.getCount(); }
+  unsigned int getOpcodeSize() const { return opcode_size; }
   ia32_prefixes * getPrefix() { return &prf; }
   unsigned int getLegacyType() const { return legacy_type; }
   bool hasRipRelativeData() const { return rip_relative_data; }
@@ -913,18 +913,6 @@ class ia32_instruction
         | IA32_DECODE_CONDITION)
 #define IA32_SIZE_DECODER 0
 
-/* TODO: documentation*/
-COMMON_EXPORT bool ia32_decode_prefixes(const unsigned char* addr, ia32_instruction& insn);
-
-/**
- * Decode just the opcode of the given instruction. This implies that
- * ia32_decode_prefixes has already been called on the given instruction
- * and addr has been moved past the prefix bytes. Returns zero on success,
- * non zero otherwise.
- */
-COMMON_EXPORT int ia32_decode_opcode(unsigned int capa, 
-        const unsigned char* addr, ia32_instruction& instruct, 
-        ia32_entry** gotit_ret);
 
 /**
  * Do a complete decoding of the instruction at the given address. This
@@ -934,8 +922,11 @@ COMMON_EXPORT int ia32_decode_opcode(unsigned int capa,
  * is not defined. capabilities is a mask of the above flags (IA32_DECODE_*).
  * The mask determines what part of the instruction should be decoded.
  */
-COMMON_EXPORT ia32_instruction& ia32_decode(unsigned int capabilities,
+COMMON_EXPORT int ia32_decode(unsigned int capabilities,
         const unsigned char* addr, ia32_instruction&);
+
+COMMON_EXPORT unsigned int ia32_emulate_old_type(
+        ia32_instruction& instruct);
 
 
 enum dynamic_call_address_mode {
@@ -948,12 +939,12 @@ enum dynamic_call_address_mode {
    get_instruction: get the instruction that starts at instr.
    return the size of the instruction and set instType to a type descriptor
 */
-COMMON_EXPORT unsigned get_instruction(const unsigned char *instr, unsigned &instType,
-			 const unsigned char** op_ptr = NULL);
+COMMON_EXPORT unsigned get_instruction(const unsigned char *instr, 
+        unsigned &instType, const unsigned char** op_ptr = NULL);
 
 /* get the target of a jump or call */
-COMMON_EXPORT Address get_target(const unsigned char *instr, unsigned type, unsigned size,
-		   Address addr);
+COMMON_EXPORT Address get_target(const unsigned char *instr, 
+        unsigned type, unsigned size, Address addr);
 
 // Size of a jump rel32 instruction
 #define JUMP_REL32_SZ (6)
@@ -1020,11 +1011,19 @@ class instruction {
       setInstruction((const unsigned char*)ptr);
   }
 
-  unsigned setInstruction(const unsigned char *p, Address = 0) {
-      ptr_ = p;
-      size_ = get_instruction(ptr_, type_, &op_ptr_);
-      return size_;
-  }
+    unsigned setInstruction(const unsigned char *p, Address = 0) 
+    {
+        ia32_instruction instruction;
+        if(ia32_decode(0, p, instruction))
+            assert(!"Tried to set invalid instruction!"); /* decoding failure */
+
+        type_ = ia32_emulate_old_type(instruction);
+        op_ptr_ = p + instruction.getPrefixSize();
+        size_ = instruction.getSize();
+        ptr_ = p;
+
+        return size_;
+    }
 
   // if the instruction is a jump or call, return the target, else return zero
   Address getTarget(Address addr) const { 
@@ -1140,8 +1139,6 @@ inline bool is_addr32(Address addr) {
 
 COMMON_EXPORT void decode_SIB(unsigned sib, unsigned& scale, 
         Register& index_reg, Register& base_reg);
-COMMON_EXPORT const unsigned char* skip_headers(const unsigned char*, 
-        ia32_instruction* = NULL);
 
 /* addresses on x86 don't have to be aligned */
 /* Address bounds of new dynamic heap segments.  On x86 we don't try

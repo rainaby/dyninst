@@ -867,12 +867,6 @@ bool insnCodeGen::generateMem(codeGen &gen,
       return false; // e.g., leave, pushad instruction
    }
 
-   //if (loc.address_size == 1) {
-   //  //Don't support 16-bit instructions yet
-   //  cerr << "Error: insn is 16-bit" << endl;
-   //  return false;
-   //}
-
    if (loc.modrm_reg == 4 && !loc.rex_r && loc.address_size != 1) {
       //cerr << "Error: insn uses esp/rsp" << endl;
       //The non-memory access register is %rsp/%esp, we can't work with
@@ -1191,28 +1185,17 @@ bool insnCodeGen::modifyData(Address targetAddr, instruction &insn, codeGen &gen
      * This information is generated during ia32_decode. To make this faster
      * We are only going to do the prefix and opcode decodings
      */
-    if(!ia32_decode_prefixes(origInsn, instruct))
+    if(!ia32_decode(0, origInsn, instruct))
         assert(!"Couldn't decode prefix of already known instruction!\n");
 
-    /* get the prefix count */
-    size_t pref_count = instruct.getSize();
+    /* get the prefix and opcode count */
+    size_t pref_count = instruct.getPrefixSize();
+    size_t opcode_len = instruct.getOpcodeSize();
 
-    /* copy the prefix */
-    memcpy(newInsn, origInsn, pref_count);
-    newInsn += pref_count;
-    origInsn += pref_count;
-
-    /* Decode the opcode */
-    if(ia32_decode_opcode(0, origInsn, instruct, NULL))
-        assert(!"Couldn't decode opcode of already known instruction!\n");
-
-    /* Calculate the amount of opcode bytes */
-    size_t opcode_len = instruct.getSize() - pref_count;
-
-    /* Copy the opcode bytes */
-    memcpy(newInsn, origInsn, opcode_len);
-    newInsn += opcode_len;
-    origInsn += opcode_len;
+    /* copy the prefix and opcode */
+    memcpy(newInsn, origInsn, pref_count + opcode_len);
+    newInsn += pref_count + opcode_len;
+    origInsn += pref_count + opcode_len;
 
     /* Get the value of the Mod/RM byte */
     unsigned char mod_rm = *origInsn;
@@ -1284,8 +1267,7 @@ bool insnCodeGen::modifyData(Address targetAddr, instruction &insn, codeGen &gen
 
 bool insnCodeGen::modifyDisp(signed long newDisp, instruction &insn, codeGen &gen, Architecture arch, Address addr) {
 
-    relocation_cerr << "modifyDisp "
-        << std::hex << addr
+    relocation_cerr << "modifyDisp " << std::hex << addr
         << std::dec << ", newDisp = " << newDisp << endl;
 
     const unsigned char* origInsn = insn.ptr();
@@ -1316,37 +1298,24 @@ bool insnCodeGen::modifyDisp(signed long newDisp, instruction &insn, codeGen &ge
      * This information is generated during ia32_decode. To make this faster
      * We are only going to do the prefix and opcode decodings
      */
-    if(!ia32_decode_prefixes(origInsn, instruct))
+    if(!ia32_decode(0, origInsn, instruct))
         assert(!"Couldn't decode prefix of already known instruction!\n");
 
     /* get the prefix count */
-    size_t pref_count = instruct.getSize();
+    size_t pref_count = instruct.getPrefixSize();
+    size_t opcode_len = instruct.getOpcodeSize();
 
     /* copy the prefix */
-    memcpy(newInsn, origInsn, pref_count);
-    newInsn += pref_count;
-    origInsn += pref_count;
-
-    /* Decode the opcode */
-    if(ia32_decode_opcode(0, origInsn, instruct, NULL))
-        assert(!"Couldn't decode opcode of already known instruction!\n");
-
-    /* Calculate the amount of opcode bytes */
-    size_t opcode_len = instruct.getSize() - pref_count;
-
-    /* Copy the opcode bytes */
-    memcpy(newInsn, origInsn, opcode_len);
-    newInsn += opcode_len;
-    origInsn += opcode_len;
+    memcpy(newInsn, origInsn, pref_count + opcode_len);
+    newInsn += pref_count + opcode_len;
+    origInsn += pref_count + opcode_len;
 
     /******************************************* modRM *************************/
     // Update displacement size (mod bits in ModRM), if necessary
     int expectedDifference = 0;
     unsigned char modrm = *origInsn++;
     unsigned char modrm_mod = MODRM_MOD(modrm);
-    //unsigned char modrm_reg = MODRM_REG(modrm);
     unsigned char modrm_rm = MODRM_RM(modrm);
-
 
     int origDispSize = -1;
 

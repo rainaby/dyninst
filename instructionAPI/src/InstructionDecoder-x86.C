@@ -784,12 +784,12 @@ namespace Dyninst
             case am_V: case am_YV: case am_XV:
                 switch(pref.vex_type)
                 {
-                    case VEX_TYPE_EVEX:
+                    case VEX_PREFIX_EVEX:
                         regnum |= pref.vex_R << 4;
                         regnum |= pref.vex_r << 3;
                         break;
-                    case VEX_TYPE_VEX2:
-                    case VEX_TYPE_VEX3:
+                    case VEX_PREFIX_VEX2:
+                    case VEX_PREFIX_VEX3:
                         regnum |= pref.vex_r << 3;
                         break;
                     default:break;
@@ -800,11 +800,11 @@ namespace Dyninst
             case am_W: case am_YW: case am_XW:
                 switch(pref.vex_type)
                 {
-                    case VEX_TYPE_EVEX:
+                    case VEX_PREFIX_EVEX:
                         regnum |= pref.vex_x << 4;
                         regnum |= pref.vex_b << 3;
                         break;
-                    case VEX_TYPE_VEX3:
+                    case VEX_PREFIX_VEX3:
                         regnum |= pref.vex_x << 4;
                         regnum |= pref.vex_b << 3;
                         break;
@@ -1826,7 +1826,7 @@ namespace Dyninst
 
         ia32_prefixes& pref = *decodedInstruction->getPrefix();
         /* Is this an EVEX prefixed instruction? */
-        if(pref.vex_type == VEX_TYPE_EVEX)
+        if(pref.vex_type == VEX_PREFIX_EVEX)
         {
             insn_to_complete->appendOperand(makeMaskRegisterExpression(
                         IntelRegTable(m_Arch, b_kmask, pref.vex_aaa)), 
