@@ -78,61 +78,77 @@ using namespace Dyninst::InstructionAPI;
 #define REX_SET_R(x, v) ((x) = static_cast<unsigned char>((x) | ((v) ? 0x4 : 0)))
 #define REX_SET_X(x, v) ((x) = static_cast<unsigned char>((x) | ((v) ? 0x2 : 0)))
 #define REX_SET_B(x, v) ((x) = static_cast<unsigned char>((x) | ((v) ? 0x1 : 0)))
-unsigned copy_prefixes(const unsigned char *&origInsn, unsigned char *&newInsn, unsigned insnType) {
-  unsigned nPrefixes = count_prefixes(insnType);
 
-  for (unsigned u = 0; u < nPrefixes; u++)
-     *newInsn++ = *origInsn++;
-  return nPrefixes;
+/**
+ * Copy all prefix bytes of an instruction. Returns the amount of bytes copied.
+ */
+unsigned int copy_prefixes(const unsigned char *&origInsn, unsigned char *&newInsn,
+        ia32_instruction& instruction) 
+{
+    unsigned int prefixes = instruction.getPrefixSize();
+    for (unsigned int x = 0; x < prefixes; x++)
+        *newInsn++ = *origInsn++;
+
+    return prefixes;
 }
 
-//Copy all prefixes but the Operand-Size and Address-Size prefixes (0x66 and 0x67)
-unsigned copy_prefixes_nosize(const unsigned char *&origInsn, unsigned char *&newInsn, 
-                              unsigned insnType) 
+/**
+ * Copy all prefixes but the Operand-Size and Address-Size prefixes (0x66 and 0x67).
+ * Assumes that the original pointer is pointing to an instruction that dyninst can
+ * understand. Returns the amount of bytes copied.
+ */
+unsigned int copy_prefixes_nosize(const unsigned char *&origInsn, unsigned char *&newInsn,
+        ia32_instruction& instruction) 
 {
-    unsigned retval = 0;
-    unsigned nPrefixes = count_prefixes(insnType);
+    unsigned int prefixes = instruction.getPrefixSize();
+    unsigned int retval = 0;
 
-    for (unsigned u = 0; u < nPrefixes; u++) {
-        if (*origInsn == 0x66 || *origInsn == 0x67)
+    for (unsigned int x = 0; x < prefixes; x++) 
+    {
+        switch(*origInsn)
         {
-            origInsn++;
-            continue;
+            case 0x66: case 0x67:
+                origInsn++;
+                break;
+            default:
+                retval++;
+                *newInsn++ = *origInsn++;
+                break;
         }
-        retval++;
-        *newInsn++ = *origInsn++;
     }
+
     return retval;
 }
 
-//Copy all prefixes but the Operand-Size and Address-Size prefixes (0x66 and 0x67)
-// Returns the number of bytes copied
-unsigned copy_prefixes_nosize_or_segments(const unsigned char *&origInsn, unsigned char *&newInsn, 
-                              unsigned insnType) 
+/**
+ * Copy all prefixes but the Operand-Size and Address-Size prefixes (0x66 and 0x67).
+ * Also ignores segment prefixes. Assumes that the original pointer is pointing to 
+ * an instruction that dyninst can understand. Also ignores segment prefixes. 
+ * Returns the number of bytes copied
+ */
+unsigned int copy_prefixes_nosize_or_segments(const unsigned char *&origInsn, 
+        unsigned char *&newInsn, ia32_instruction& instruction) 
 {
-    unsigned retval = 0;
-  unsigned nPrefixes = count_prefixes(insnType);
-  if (0 == nPrefixes) {
-      return 0;
-  }
+    unsigned int prefixes = instruction.getPrefixSize();
+    unsigned int retval = 0;
 
-  // duplicate prefixes are possible and are not identified by count_prefixes
-  unsigned nWithDups = 0; 
-  while(true) {
-     if ((*origInsn) >= 0x64 && (*origInsn) <= 0x67) {
-        origInsn++;
-     }
-     else {
-         if (nWithDups >= nPrefixes) {
-            break;
-         }
-         *newInsn++ = *origInsn++;
-         retval++;
-     }
-     nWithDups++;
-  }
+    for(unsigned int x = 0;x < prefixes;x++)
+    {
+        switch(*origInsn)
+        {
+            /* Skip any size or segment prefixes */
+            case 0x64: case 0x65:
+            case 0x66: case 0x67:
+                origInsn++;
+                break;
+            default:
+                *newInsn++ = *origInsn++;
+                retval++;
+                break;
+        }
+    }
 
-  return retval;
+    return retval;
 }
 
 bool convert_to_rel8(const unsigned char*&origInsn, unsigned char *&newInsn) {
@@ -428,22 +444,26 @@ pcRelJump::~pcRelJump()
 
 unsigned pcRelJump::apply(Address addr)
 {
-   const unsigned char *origInsn = orig_instruc.ptr();
-   unsigned insnType = orig_instruc.type();
-   unsigned char *orig_loc;
-  
-   GET_PTR(newInsn, *gen);
-   orig_loc = newInsn;
-   if (copy_prefixes_) {
-       addr += copy_prefixes(origInsn, newInsn, insnType);
-       // Otherwise we will fail to account for them and
-       // generate a branch that is +(# prefix bytes)
-   }
-   SET_PTR(newInsn, *gen);
-    
-   insnCodeGen::generateBranch(*gen, addr, get_target());
-   REGET_PTR(newInsn, *gen);
-   return (unsigned) (newInsn - orig_loc);
+    const unsigned char *origInsn = orig_instruc.ptr();
+    unsigned char *orig_loc;
+
+    GET_PTR(newInsn, *gen);
+    orig_loc = newInsn;
+    if (copy_prefixes_) 
+    {
+        ia32_instruction instruction;
+        if(ia32_decode(0, origInsn, instruction))
+            assert(!"Instruction Decoding Failure");
+
+        addr += copy_prefixes(origInsn, newInsn, instruction);
+        // Otherwise we will fail to account for them and
+        // generate a branch that is +(# prefix bytes)
+    }
+    SET_PTR(newInsn, *gen);
+
+    insnCodeGen::generateBranch(*gen, addr, get_target());
+    REGET_PTR(newInsn, *gen);
+    return (unsigned) (newInsn - orig_loc);
 }
 
 unsigned pcRelJump::maxSize()
@@ -490,14 +510,17 @@ pcRelJCC::~pcRelJCC()
 unsigned pcRelJCC::apply(Address addr)
 {
    const unsigned char *origInsn = orig_instruc.ptr();
-   unsigned insnType = orig_instruc.type();
    Address target = get_target();
    Address potential;
    signed long disp;
    codeBufIndex_t start = gen->getIndex();
    GET_PTR(newInsn, *gen);
+   ia32_instruction instruction;
 
-   addr += copy_prefixes_nosize_or_segments(origInsn, newInsn, insnType); 
+   if(ia32_decode(0, origInsn, instruction))
+       assert(!"Instruction Decoding Failure.");
+
+   addr += copy_prefixes_nosize_or_segments(origInsn, newInsn, instruction); 
 
    //8-bit jump
    potential = addr + 2;
@@ -620,12 +643,15 @@ pcRelCall::~pcRelCall()
 unsigned pcRelCall::apply(Address addr)
 {
    const unsigned char *origInsn = orig_instruc.ptr();
-   unsigned insnType = orig_instruc.type();
    unsigned char *orig_loc;
+   ia32_instruction instruction;
    GET_PTR(newInsn, *gen);
    orig_loc = newInsn;
 
-   addr += copy_prefixes_nosize(origInsn, newInsn, insnType);
+   if(ia32_decode(0, origInsn, instruction))
+       assert(!"Instruction Decoding Failure.");
+
+   addr += copy_prefixes_nosize(origInsn, newInsn, instruction);
    SET_PTR(newInsn, *gen);
    insnCodeGen::generateCall(*gen, addr, get_target());
    REGET_PTR(newInsn, *gen);
@@ -1010,11 +1036,13 @@ bool insnCodeGen::modifyJump(Address targetAddr, NS_x86::instruction &insn, code
    Address from = gen.currAddr();
 
    const unsigned char *origInsn = insn.ptr();
-   unsigned insnType = insn.type();
+   ia32_instruction instruction;
+   if(ia32_decode(0, origInsn, instruction))
+       assert(!"Instruction Decoding Failure.");
   
    GET_PTR(newInsn, gen);
 
-   from += copy_prefixes(origInsn, newInsn, insnType);
+   from += copy_prefixes(origInsn, newInsn, instruction);
    // Otherwise we will fail to account for them and
    // generate a branch that is +(# prefix bytes)
 
@@ -1026,15 +1054,18 @@ bool insnCodeGen::modifyJump(Address targetAddr, NS_x86::instruction &insn, code
 
 bool insnCodeGen::modifyJcc(Address targetAddr, NS_x86::instruction &insn, codeGen &gen) {
    const unsigned char *origInsn = insn.ptr();
-   unsigned insnType = insn.type();
    Address from = gen.currAddr();
 
    Address potential;
    signed long disp;
    codeBufIndex_t start = gen.getIndex();
+   ia32_instruction instruction;
    GET_PTR(newInsn, gen);
 
-   from += copy_prefixes_nosize_or_segments(origInsn, newInsn, insnType); 
+   if(ia32_decode(0, origInsn, instruction))
+       assert(!"Instruction Decode Failure.");
+
+   from += copy_prefixes_nosize_or_segments(origInsn, newInsn, instruction);
    
 
    //8-bit jump
@@ -1120,13 +1151,15 @@ bool insnCodeGen::modifyCall(Address targetAddr, NS_x86::instruction &insn, code
    // and do a 64-bit long thang
 
    const unsigned char *origInsn = insn.ptr();
-   unsigned insnType = insn.type();
+   ia32_instruction instruction;
    codeBufIndex_t cur = gen.getIndex();
 
    // Let's try copying prefixes
 
    GET_PTR(newInsn, gen);
-   copy_prefixes_nosize(origInsn, newInsn, insnType);
+   if(ia32_decode(0, origInsn, instruction))
+       assert(!"Instruction Decoding Failure.");
+   copy_prefixes_nosize(origInsn, newInsn, instruction);
    SET_PTR(newInsn, gen);
 
    // If we're within 32-bits, then okay; otherwise rewind and use
@@ -1167,7 +1200,6 @@ bool insnCodeGen::modifyData(Address targetAddr, instruction &insn, codeGen &gen
     Register pointer_reg = (Register)-1;
 
     /******************************************* prefix/opcode ****************/
-
 
     /**
      * This information is generated during ia32_decode. To make this faster
