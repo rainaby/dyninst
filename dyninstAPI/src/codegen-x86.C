@@ -1174,7 +1174,7 @@ bool insnCodeGen::modifyData(Address targetAddr, instruction &insn, codeGen &gen
      * We are only going to do the prefix and opcode decodings
      */
     ia32_instruction instruct;
-    if(!ia32_decode(0, origInsn, instruct))
+    if(ia32_decode(0, origInsn, instruct))
         assert(!"Couldn't decode prefix of already known instruction!\n");
 
     /* get the prefix and opcode count */
@@ -1288,7 +1288,7 @@ bool insnCodeGen::modifyDisp(signed long newDisp, instruction &insn,
      * We are only going to do the prefix and opcode decodings
      */
     ia32_instruction instruct; 
-    if(!ia32_decode(0, origInsn, instruct))
+    if(ia32_decode(0, origInsn, instruct))
         assert(!"Couldn't decode prefix of already known instruction!\n");
 
     /* get the prefix count */

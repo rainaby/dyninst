@@ -61,9 +61,9 @@
 // #define VEX_PEDANTIC
 
 /* Whether or not to dump instruction information on decode failure */
-#define DECODE_FAILURE_DUMP
+// #define DECODE_FAILURE_DUMP
 /* Throw an assert when decoding errors are encountered (debugging) */
-#define DECODE_FAILURE_ASSERT
+// #define DECODE_FAILURE_ASSERT
 
 using namespace std;
 using namespace boost::assign;
