@@ -8850,14 +8850,16 @@ int ia32_decode_opcode(unsigned int capa, const unsigned char* addr,
                         {
                             case Grp2:
                             case Grp11:
-                                /* leave table unchanged because operands are in not
-                                   defined in group map, unless this is an invalid index
-                                   into the group, in which case we need the instruction
-                                   to reflect its illegal status */
+                                /**
+                                 * leave table unchanged because operands are in not
+                                 * defined in group map, unless this is an invalid index
+                                 * into the group, in which case we need the instruction
+                                 * to reflect its illegal status 
+                                 */
                                 if(groupMap[idx][reg].id == e_No_Entry)
                                     gotit = &groupMap[idx][reg];
                                 nxtab = groupMap[idx][reg].otable;
-                                assert(nxtab==t_done || nxtab==t_ill);
+                                assert(nxtab == t_done || nxtab == t_ill);
                                 break;
                             default:
                                 gotit = &groupMap[idx][reg];
