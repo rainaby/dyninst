@@ -39,6 +39,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <tr1/unordered_map>
 
 // To define StackAST
 #include "DynAST.h"
@@ -172,7 +173,6 @@ public:
       Height_t height_;
       Type type_;
    };
-
 
    // We need to represent the effects of instructions. We do this in terms of
    // transfer functions. We recognize the following effects on the stack.
@@ -320,20 +320,22 @@ public:
    //   c) The "depth" of any copies of the stack pointer.
 
    typedef std::map<Offset, AbslocState> StateIntervals;
-   typedef std::map<ParseAPI::Block *, StateIntervals> Intervals;
+   typedef std::tr1::unordered_map<ParseAPI::Block *, StateIntervals> Intervals;
 
-   typedef std::map<ParseAPI::Function *, Height> FuncCleanAmounts;
+   typedef std::tr1::unordered_map<ParseAPI::Function *, Height>
+      FuncCleanAmounts;
 
-   typedef std::map<ParseAPI::Block *, SummaryFunc> BlockEffects;
-   typedef std::map<ParseAPI::Block *, AbslocState> BlockState;
-   typedef std::map<ParseAPI::Block *, TransferSet> BlockSummaryState;
+   typedef std::tr1::unordered_map<ParseAPI::Block *, SummaryFunc> BlockEffects;
+   typedef std::tr1::unordered_map<ParseAPI::Block *, AbslocState> BlockState;
+   typedef std::tr1::unordered_map<ParseAPI::Block *, TransferSet>
+      BlockSummaryState;
 
    // To build intervals, we must replay the effect of each instruction.
    // To avoid sucking enormous time, we keep those transfer functions around...
-   typedef std::map<ParseAPI::Block *, std::map<Offset, TransferFuncs> >
-      InstructionEffects;
-   typedef std::map<ParseAPI::Block *, std::map<Offset, TransferSet>>
-      CallEffects;
+   typedef std::tr1::unordered_map<ParseAPI::Block *,
+      std::map<Offset, TransferFuncs> > InstructionEffects;
+   typedef std::tr1::unordered_map<ParseAPI::Block *,
+      std::tr1::unordered_map<Offset, TransferSet> > CallEffects;
 
    DATAFLOW_EXPORT StackAnalysis();
    DATAFLOW_EXPORT StackAnalysis(ParseAPI::Function *f);

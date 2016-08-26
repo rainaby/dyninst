@@ -457,8 +457,8 @@ bool getMemoryOffset(ParseAPI::Function* func,
     std::vector<InstructionAPI::Operand> operands;
     insn->getOperands(operands);
 
-    signed long disp = 0;  // Stack height of access
-    signed long offset = 0;  // Offset from the base register used in the access
+    signed long disp = 0;  // Offset from the base register used in the access
+    signed long offset = 0;  // Stack height of access
     bool isOffsetSet = false;
 
     // Determine how memory is accessed

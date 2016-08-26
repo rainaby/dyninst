@@ -482,8 +482,7 @@ void StackAnalysis::summarize() {
       Block *block = bit->first;
       AbslocState input = bit->second;
 
-      std::map<Offset, TransferFuncs>::iterator iter;
-      for (iter = (*insnEffects)[block].begin();
+      for (auto iter = (*insnEffects)[block].begin();
          iter != (*insnEffects)[block].end(); ++iter) {
          Offset off = iter->first;
          TransferFuncs &xferFuncs = iter->second;
@@ -936,7 +935,7 @@ private:
 
    // Stack for calculations
    // bool is true if the value in Address is a stack height
-   std::deque<std::pair<Address, bool>> results;
+   std::deque<std::pair<Address, bool> > results;
 
 };
 
@@ -1008,7 +1007,7 @@ void StackAnalysis::handleXor(Instruction::Ptr insn, Block *block,
          // xor mem1, reg2
          assert(readSet.size() == 1);
          Absloc from((*readSet.begin())->getID());
-         std::map<Absloc, std::pair<long, bool>> fromRegs;
+         std::map<Absloc, std::pair<long, bool> > fromRegs;
          fromRegs[writtenLoc] = std::make_pair(1, true);
          fromRegs[from] = std::make_pair(1, true);
          xferFuncs.push_back(TransferFunc::sibFunc(fromRegs, 0, writtenLoc));
@@ -1052,7 +1051,7 @@ void StackAnalysis::handleXor(Instruction::Ptr insn, Block *block,
             // We have a static address
             readLoc = Absloc(resultPair.first);
          }
-         std::map<Absloc, std::pair<long, bool>> fromRegs;
+         std::map<Absloc, std::pair<long, bool> > fromRegs;
          fromRegs[writtenLoc] = std::make_pair(1, true);
          fromRegs[readLoc] = std::make_pair(1, true);
          xferFuncs.push_back(TransferFunc::sibFunc(fromRegs, 0, writtenLoc));
@@ -1077,7 +1076,7 @@ void StackAnalysis::handleXor(Instruction::Ptr insn, Block *block,
 
    if (read.isValid()) {
       // xor reg1, reg2
-      std::map<Absloc, std::pair<long, bool>> fromRegs;
+      std::map<Absloc, std::pair<long, bool> > fromRegs;
       fromRegs[writtenLoc] = std::make_pair(1, true);
       fromRegs[readLoc] = std::make_pair(1, true);
       xferFuncs.push_back(TransferFunc::sibFunc(fromRegs, 0, writtenLoc));
@@ -1375,7 +1374,7 @@ void StackAnalysis::handleAddSub(Instruction::Ptr insn, Block *block,
             xferFuncs.push_back(TransferFunc::copyFunc(writtenLoc, writtenLoc,
                true));
          } else {
-            std::map<Absloc, std::pair<long, bool>> terms;
+            std::map<Absloc, std::pair<long, bool> > terms;
             Absloc src(srcReg);
             Absloc &dest = writtenLoc;
             terms[src] = make_pair(sign, false);
@@ -1431,7 +1430,7 @@ void StackAnalysis::handleAddSub(Instruction::Ptr insn, Block *block,
             // We have a static address
             readLoc = Absloc(resultPair.first);
          }
-         std::map<Absloc, std::pair<long, bool>> terms;
+         std::map<Absloc, std::pair<long, bool> > terms;
          terms[readLoc] = make_pair(sign, false);
          terms[writtenLoc] = make_pair(1, false);
          xferFuncs.push_back(TransferFunc::sibFunc(terms, 0, writtenLoc));
@@ -1460,7 +1459,7 @@ void StackAnalysis::handleAddSub(Instruction::Ptr insn, Block *block,
          xferFuncs.push_back(TransferFunc::copyFunc(writtenLoc, writtenLoc,
             true));
       } else {
-         std::map<Absloc, std::pair<long, bool>> terms;
+         std::map<Absloc, std::pair<long, bool> > terms;
          Absloc src(srcReg);
          Absloc &dest = writtenLoc;
          terms[src] = make_pair(sign, false);
@@ -2170,7 +2169,7 @@ void StackAnalysis::handleDefault(Instruction::Ptr insn, Block *block,
          xferFuncs.push_back(TransferFunc::retopFunc(writtenLoc));
          continue;
       }
-      std::map<Absloc, std::pair<long, bool>> fromRegs;
+      std::map<Absloc, std::pair<long, bool> > fromRegs;
       for (auto rIter = readLocs.begin(); rIter != readLocs.end(); rIter++) {
          const Absloc &readLoc = *rIter;
          fromRegs[readLoc] = std::make_pair(1, true);
@@ -2252,7 +2251,7 @@ bool StackAnalysis::handleNormalCall(Instruction::Ptr insn, Block *block,
                tf.target = Absloc(newOff, 0, NULL);
                summaryLoc = tf.target;
             }
-            std::map<Absloc, std::pair<long, bool>> newFromRegs;
+            std::map<Absloc, std::pair<long, bool> > newFromRegs;
             for (auto frIter = tf.fromRegs.begin(); frIter != tf.fromRegs.end();
                frIter++) {
                const Absloc &loc = frIter->first;
@@ -2418,7 +2417,7 @@ bool StackAnalysis::handleJump(Instruction::Ptr insn, Block *block, Offset off,
                tf.target = Absloc(newOff, 0, NULL);
                summaryLoc = tf.target;
             }
-            std::map<Absloc, std::pair<long, bool>> newFromRegs;
+            std::map<Absloc, std::pair<long, bool> > newFromRegs;
             for (auto frIter = tf.fromRegs.begin(); frIter != tf.fromRegs.end();
                frIter++) {
                const Absloc &loc = frIter->first;
@@ -2781,7 +2780,7 @@ StackAnalysis::TransferFunc StackAnalysis::TransferFunc::meet(
             // possible bases.  Note that current SIB function handling doesn't
             // actually add the terms together.
             // FIXME if SIB function handling changes.
-            std::map<Absloc, std::pair<long, bool>> fromRegs;
+            std::map<Absloc, std::pair<long, bool> > fromRegs;
             fromRegs[lhs.from] = std::make_pair(1, true);
             fromRegs[rhs.from] = std::make_pair(1, true);
             ret = sibFunc(fromRegs, 0, lhs.target);
