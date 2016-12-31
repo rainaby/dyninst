@@ -1,68 +1,86 @@
 /*
  * See the dyninst/COPYRIGHT file for copyright information.
- * 
+ *
  * We provide the Paradyn Tools (below described as "Paradyn")
  * on an AS IS basis, and do not warrant its validity or performance.
  * We reserve the right to update, modify, or discontinue this
  * software at any time.  We shall have no obligation to supply such
  * updates or modifications or any other form of support to you.
- * 
+ *
  * By your use of Paradyn, you understand and agree that we (or any
  * other person or entity with proprietary rights in Paradyn) are
  * under no obligation to provide either maintenance services,
  * update services, notices of latent defects, or correction of
  * defects for Paradyn.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-// Architecture include. Use this one instead of arch-<platform>
+#include "debug.h"
+#include "dynProcess.h"
+#include "baseTramp.h"
+#include "function.h"
+#include "frameChecker.h"
+#include "inst-archPTX.h"
 
-#if !defined(arch_h)
-#define arch_h
+//#warning "This file is not implemented yet!"
+using namespace Dyninst;
 
-#include <assert.h>
-#include <vector>
+bool PCProcess::createStackwalkerSteppers()
+{
+	assert(0);
+  return true;
+}
 
-#if defined(arch_power)
-#include "arch-power.h"
-using namespace NS_power;
+bool StackwalkInstrumentationHelper::isInstrumentation(Dyninst::Address ra,
+                                                       Dyninst::Address * /*orig_ra*/,
+                                                       unsigned * stack_height,
+                                                       bool * /* deref */,
+                                                       bool * /*entryExit*/)
+{
+	assert(0);
+	return false;
+}
 
-#elif defined(i386_unknown_nt4_0) \
-   || defined(arch_x86)           \
-   || defined(arch_x86_64)
-#include "arch-x86.h"
-using namespace NS_x86;
+using namespace Stackwalker;
 
-#elif defined(arch_aarch64)
-#include "arch-aarch64.h"
-using namespace NS_aarch64;
+FrameFuncHelper::alloc_frame_t DynFrameHelper::allocatesFrame(Address addr)
+{
+	assert(0);
+  FrameFuncHelper::alloc_frame_t result;
+  return result;
+}
 
-#elif defined(arch_archPTX)
-#include "arch-archPTX.h"
-using namespace NS_archPTX;
-#
+bool DynWandererHelper::isPrevInstrACall(Address /*addr*/, Address &/*target*/)
+{
+  // NOT IMPLEMENTED
+  assert(0);
+  return false;
+}
 
-#else
-#error "unknown architecture"
+WandererHelper::pc_state DynWandererHelper::isPCInFunc(Address /*func_entry*/, Address /*pc*/)
+{
+  // NOT IMPLEMENTED
+  assert(0);
+  return WandererHelper::unknown_s;
+}
 
-#endif
+bool DynWandererHelper::requireExactMatch()
+{
+  // NOT IMPLEMENTED
+  assert(0);
+  return false;
+}
 
-// For platforms that require bit-twiddling. These should go away in the future.
-#define GET_PTR(insn, gen) codeBuf_t *insn = (codeBuf_t *)(gen).cur_ptr()
-#define SET_PTR(insn, gen) (gen).update(insn)
-#define REGET_PTR(insn, gen) insn = (codeBuf_t *)(gen).cur_ptr()
-
-#endif

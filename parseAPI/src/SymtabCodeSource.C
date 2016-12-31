@@ -158,6 +158,10 @@ SymtabCodeRegion::getArch() const
         return Arch_x86;
 #elif defined(arch_aarch64)
 		return Arch_aarch64;
+#elif defined(arch_archPTX)
+		return Arch_archPTX;
+
+
 #else
     return Arch_none;
 #endif
@@ -665,6 +669,10 @@ SymtabCodeSource::getArch() const
         return Arch_x86;
 #elif defined(arch_aarch64)
 		return Arch_aarch64;
+#elif defined(arch_archPTX)
+		return Arch_archPTX;
+
+
 #else
     return Arch_none;
 #endif

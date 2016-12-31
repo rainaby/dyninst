@@ -52,6 +52,13 @@ namespace NS_aarch64{
 		class instruction;
 }
 using namespace NS_aarch64;
+
+namespace NS_archPTX{
+		class instruction;
+}
+using namespace NS_archPTX;
+
+
 #else
 #error "unknown architecture"
 

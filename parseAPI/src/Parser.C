@@ -1278,8 +1278,8 @@ Parser::parse_frame(ParseFrame & frame, bool recursive) {
             ParseCallback::insn_details insn_det;
             insn_det.insn = &ah;
 	     
-                parsing_printf("[%s:%d] curAddr 0x%lx: %s \n",
-                    FILE__,__LINE__,curAddr, insn_det.insn->getInstruction()->format().c_str() );
+	    parsing_printf("[%s:%d] curAddr 0x%lx: %s (%lx)\n", FILE__,__LINE__,curAddr, insn_det.insn->getInstruction()->format().c_str(), *(int *)insn_det.insn->getInstruction()->ptr());             
+
 
             if (func->_is_leaf_function) {
                 Address ret_addr;

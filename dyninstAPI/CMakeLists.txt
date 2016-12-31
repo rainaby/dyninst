@@ -141,7 +141,20 @@ set (SRC_LIST ${SRC_LIST}
      src/stackwalk-aarch64.C
      src/Relocation/Widgets/CFWidget-aarch64.C
 )
+
+
+
+elseif (PLATFORM MATCHES archPTX)
+set (SRC_LIST ${SRC_LIST}
+     src/inst-archPTX.C 
+     src/codegen-archPTX.C 
+     src/parse-archPTX.C 
+     src/RegisterConversion-archPTX.C 
+     src/stackwalk-archPTX.C
+     src/Relocation/Widgets/CFWidget-archPTX.C
+)
 endif ()
+
 
 if (PLATFORM MATCHES freebsd)
 set (SRC_LIST ${SRC_LIST} 
@@ -165,7 +178,11 @@ set (SRC_LIST ${SRC_LIST}
     set (SRC_LIST ${SRC_LIST} src/linux-power.C)
   elseif (PLATFORM MATCHES aarch64)
     set (SRC_LIST ${SRC_LIST} src/linux-aarch64.C)
-  endif()
+  elseif (PLATFORM MATCHES archPTX.C)
+    set (SRC_LIST ${SRC_LIST} src/linux-archPTX.C)
+  
+endif()
+
 elseif(PLATFORM MATCHES windows OR PLATFORM MATCHES nt)
     set (SRC_LIST ${SRC_LIST}
 		src/hybridCallbacks.C

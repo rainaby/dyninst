@@ -93,7 +93,11 @@ static DwarfFrameParser::Ptr getAuxDwarfInfo(std::string s)
       arch = Dyninst::Arch_x86_64;
 #elif defined(arch_aarch64)
     arch = Dyninst::Arch_aarch64;
+
+#elif defined(arch_archPTX)
+    arch = Dyninst::Arch_archPTX;
 #endif
+
 
    DwarfFrameParser::Ptr dresult = DwarfFrameParser::create(*dwarf->frame_dbg(), arch);
    dwarf_aux_info[s] = dresult;

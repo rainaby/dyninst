@@ -225,9 +225,6 @@ static int elfSymBind(Symbol::SymbolLinkage sLinkage)
   case Symbol::SL_LOCAL: return STB_LOCAL;
   case Symbol::SL_WEAK: return STB_WEAK;
   case Symbol::SL_GLOBAL: return STB_GLOBAL;
-#if defined(STB_GNU_UNIQUE)
-  case Symbol::SL_UNIQUE: return STB_GNU_UNIQUE;
-#endif
   default: return STB_LOPROC;
   }
 }
@@ -490,7 +487,6 @@ bool emitElf<ElfTypes>::driver(std::string fName) {
         //cerr << **eb << endl;
     }
 
-
     int newfd;
     Region *foundSec = NULL;
     unsigned pgSize = getpagesize();
@@ -499,7 +495,8 @@ bool emitElf<ElfTypes>::driver(std::string fName) {
     string strtmpl = fName + "XXXXXX";
     char buf[strtmpl.length() + 1];
     strncpy(buf, strtmpl.c_str(), strtmpl.length() + 1);
-
+    printf("%s this is ",buf);
+    
     newfd = mkstemp(buf);
 
     if (newfd == -1) {

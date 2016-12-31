@@ -38,7 +38,9 @@ set (SRC_LIST
 	src/LoopTreeNode.C
 	src/IdiomModelDesc.C
 	src/ProbabilisticParser.C
-    )
+	src/IA_archPTXDetails.C 
+           
+)
 
 set(ROSE_SRC
 	../dataflowAPI/src/ABI.C 
@@ -115,7 +117,17 @@ set (SRC_LIST ${SRC_LIST}
      src/InstructionSource-aarch64.C
      src/IA_aarch64.C
 )
+
+
+elseif (PLATFORM MATCHES archPTX)
+set (SRC_LIST ${SRC_LIST}
+     src/InstructionSource-archPTX.C
+     src/IA_archPTX.C
+)
 endif()
+
+
+
 
 if (ENABLE_PARSE_API_GRAPHS)
 set (SRC_LIST ${SRC_LIST}

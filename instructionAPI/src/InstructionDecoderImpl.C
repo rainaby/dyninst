@@ -35,6 +35,7 @@
 #include "InstructionDecoder-aarch64.h"
 #include "BinaryFunction.h"
 #include "Dereference.h"
+#include "InstructionDecoder-archPTX.h"
 
 using namespace std;
 namespace Dyninst
@@ -70,7 +71,8 @@ namespace Dyninst
                 impls[Arch_ppc32] = Ptr(new InstructionDecoder_power(Arch_ppc32));
                 impls[Arch_ppc64] = Ptr(new InstructionDecoder_power(Arch_ppc64));
                 impls[Arch_aarch64] = Ptr(new InstructionDecoder_aarch64(Arch_aarch64));
-            }
+        //	impls[Arch_archPTX] = Ptr(new InstructionDecoder_archPTX(Arch_archPTX));    
+	}
             std::map<Architecture, Ptr>::const_iterator foundImpl = impls.find(a);
             if(foundImpl == impls.end())
             {
@@ -82,7 +84,6 @@ namespace Dyninst
                 Expression::Ptr rhs, Result_Type resultType)
         {
             BinaryFunction::funcT::Ptr adder(new BinaryFunction::addResult());
-
             return make_shared(singleton_object_pool<BinaryFunction>::construct(lhs, rhs, resultType, adder));
         }
         Expression::Ptr InstructionDecoderImpl::makeMultiplyExpression(Expression::Ptr lhs, Expression::Ptr rhs,

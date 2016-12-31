@@ -223,3 +223,7 @@ endif()
 if(NOT Boost_FOUND)
     add_dependencies(common boost)
 endif()
+
+SET(CMAKE_CXX_FLAGS_DEBUG "-O0")
+SET(CMAKE_C_FLAGS_DEBUG "-O0")
+

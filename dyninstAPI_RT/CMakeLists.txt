@@ -76,6 +76,11 @@ set (SRC_LIST_aarch64
 )
 
 
+set (SRC_LIST_archPTX
+    src/RTthread-archPTX.c
+    #src/RTthread-aarch64-asm.S
+    src/RTstatic_ctors_dtors-archPTX.c                                                                                         
+)
 # We use gcc to compile the various assembly files, but
 # cmake doesn't default to knowing that gcc can
 # handle .S. 
@@ -105,8 +110,12 @@ elseif (PLATFORM MATCHES ppc32)
 set (SRC_LIST ${SRC_LIST} ${SRC_LIST_ppc32})
 elseif (PLATFORM MATCHES aarch64)
 set (SRC_LIST ${SRC_LIST} ${SRC_LIST_aarch64})
+elseif (PLATFORM MATCHES archPTX)
+set (SRC_LIST ${SRC_LIST} ${SRC_LIST_archPTX})
 endif()
 endif()
+
+
 
 add_library (dyninstAPI_RT SHARED ${SRC_LIST})
 

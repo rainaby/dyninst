@@ -83,6 +83,8 @@ MachRegister MachRegister::getBaseRegister() const {
          else return *this;
       case Arch_ppc32:
       case Arch_ppc64:
+      case Arch_archPTX:
+    	return *this;  
       case Arch_none:
          return *this;
 		case Arch_aarch32:
@@ -186,6 +188,9 @@ unsigned int MachRegister::size() const {
         return 8;
       case Arch_aarch32:
         assert(0);
+      case Arch_archPTX:
+        assert(0);
+      
       case Arch_aarch64:
 		if((reg & 0x00ff0000) == aarch64::FPR)
 		{
@@ -250,6 +255,8 @@ MachRegister MachRegister::getPC(Dyninst::Architecture arch)
          return aarch64::pc;
       case Arch_aarch32:
          assert(0);
+      case Arch_archPTX:
+         return archPTX::pc;
       case Arch_none:
          return InvalidReg;
    }
@@ -273,6 +280,9 @@ MachRegister MachRegister::getReturnAddress(Dyninst::Architecture arch)
          return aarch64::x30;
       case Arch_aarch32:
          assert(0);
+      case Arch_archPTX:
+         assert(0);
+
       case Arch_none:
          return InvalidReg;
    }
@@ -291,6 +301,8 @@ MachRegister MachRegister::getFramePointer(Dyninst::Architecture arch)
          return ppc32::r1;
       case Arch_ppc64:
          return ppc64::r1;
+      case Arch_archPTX:
+         return archPTX::x29; //aarch64: frame pointer is X29 by convention
       case Arch_aarch64:
          return aarch64::x29; //aarch64: frame pointer is X29 by convention
       case Arch_none:
@@ -316,6 +328,10 @@ MachRegister MachRegister::getStackPointer(Dyninst::Architecture arch)
          return ppc64::r1;
       case Arch_aarch64:
          return aarch64::sp; //aarch64: stack pointer is an independent register
+      
+      case Arch_archPTX:
+         return aarch64::sp; //aarch64: stack pointer is an independent register
+ 
       case Arch_aarch32:
          assert(0);
       case Arch_none:
@@ -343,7 +359,9 @@ MachRegister MachRegister::getSyscallNumberReg(Dyninst::Architecture arch)
             return aarch64::x8;
         case Arch_aarch32:
             assert(0);
-        case Arch_none:
+        case Arch_archPTX:
+            assert(0); 
+	case Arch_none:
             return InvalidReg;
       default:
          assert(0);
@@ -366,7 +384,11 @@ MachRegister MachRegister::getSyscallNumberOReg(Dyninst::Architecture arch)
             return ppc64::r0;
         case Arch_aarch64:
             return aarch64::x8;
-        case Arch_none:
+        
+	case Arch_archPTX:
+            return aarch64::x8;
+       
+	case Arch_none:
             return InvalidReg;
       default:
          assert(0);
@@ -389,7 +411,11 @@ MachRegister MachRegister::getSyscallReturnValueReg(Dyninst::Architecture arch)
             return ppc64::r3;
         case Arch_aarch64:
             return aarch64::x0; //returned value is save in x0
-        case Arch_none:
+        case Arch_archPTX:
+            return aarch64::x0; //returned value is save in x0
+      
+
+	case Arch_none:
             return InvalidReg;
       default:
          assert(0);
@@ -412,7 +438,22 @@ MachRegister MachRegister::getArchRegFromAbstractReg(MachRegister abstract,
                 assert(0); //don't know what to do
             //not abstract, return arch reg
             return abstract;
-        default:
+         
+	
+	case Arch_archPTX:
+            if( abstract == ReturnAddr)
+                    return aarch64::x30;
+            if( abstract == FrameBase)
+                    return aarch64::x29;
+            if( abstract == StackTop)
+                    return aarch64::sp;
+            if( abstract == CFA)
+                assert(0); //don't know what to do
+            //not abstract, return arch reg
+            return abstract;
+      
+
+	default:
             assert(0);
     }
     return Dyninst::InvalidReg;
@@ -422,13 +463,13 @@ bool MachRegister::isPC() const
 {
    return (*this == x86_64::rip || *this == x86::eip ||
            *this == ppc32::pc || *this == ppc64::pc ||
-           *this == aarch64::pc );
+           *this == aarch64::pc ||  *this == archPTX::pc);
 }
 
 bool MachRegister::isFramePointer() const
 {
    return (*this == x86_64::rbp || *this == x86::ebp ||
-           *this == FrameBase ||
+           *this == FrameBase || *this == archPTX::x29 ||
            *this == aarch64::x29);
 }
 
@@ -436,14 +477,14 @@ bool MachRegister::isStackPointer() const
 {
    return (*this == x86_64::rsp || *this == x86::esp ||
            *this == ppc32::r1   || *this == ppc64::r1 ||
-           *this == aarch64::sp);
+           *this == aarch64::sp || *this == archPTX::sp );
 }
 
 bool MachRegister::isSyscallNumberReg() const
 {
    return ( *this == x86_64::orax || *this == x86::oeax ||
             *this == ppc32::r1    || *this == ppc64::r1 ||
-            *this == aarch64::x8
+            *this == aarch64::x8 || *this == archPTX::x8
             );
 }
 
@@ -453,7 +494,7 @@ bool MachRegister::isSyscallReturnValueReg() const
       assert(0);
     return (*this == x86_64::rax || *this == x86::eax ||
             *this == ppc32::r1   || *this == ppc64::r1 ||
-            *this == aarch64::x0
+            *this == aarch64::x0 ||  *this == archPTX::x0 
             );
 }
 
@@ -768,7 +809,7 @@ void MachRegister::getROSERegister(int &c, int &n, int &p)
                break;
          }
          break;
-       case Arch_ppc32:
+       
        case Arch_ppc64: // 64-bit not supported in ROSE
        {
 	 baseID = reg & 0x0000FFFF;
@@ -821,7 +862,8 @@ void MachRegister::getROSERegister(int &c, int &n, int &p)
 			  }
 		      } 
 		      break;
-	    case aarch64::SPR: {
+
+		case aarch64::SPR: {
 			    n = 0;
 			    if(baseID == (aarch64::pstate & 0xFF)) {
 				c = armv8_regclass_pstate;
@@ -832,7 +874,44 @@ void MachRegister::getROSERegister(int &c, int &n, int &p)
 				c = armv8_regclass_sp;
 			    }
 			  }
+			  
+	    default:assert(!"unknown register type!");
+		    break;
+	}
+	return;
+      }
+
+       case Arch_archPTX:
+       {
+	switch(category) {
+	    case archPTX::GPR: {
+			  c = armv8_regclass_gpr;
+			  if(baseID == (archPTX::zr & 0xFF) || baseID == (archPTX::wzr & 0xFF))
+			      n = armv8_gpr_zr;
+			  else {
+			      int regnum = baseID - archPTX::x0;
+			      n = armv8_gpr_r0 + regnum;
+			  }
+		      } 
+		      break;
+           case archPTX::SPR: {
+			    n = 0;
+			    if(baseID == (archPTX::pstate & 0xFF)) {
+				c = armv8_regclass_pstate;
+				p = armv8_pstatefield_nzcv;
+			    } else if(baseID == (archPTX::pc & 0xFF)) {
+				c = armv8_regclass_pc;
+			    } else if(baseID == (archPTX::sp & 0xFF) || baseID == (aarch64::wsp & 0xFF)) {
+				c = armv8_regclass_sp;
+			    }
+			  }
 			  break; 
+
+ 
+
+
+
+
 	    default:assert(!"unknown register type!");
 		    break;
 	}
@@ -1370,6 +1449,87 @@ MachRegister MachRegister::DwarfEncToReg(int encoding, Dyninst::Architecture arc
          }
          return Dyninst::InvalidReg;
          }
+    case Arch_archPTX:
+         {
+         // this info can be found in
+         // DWARF for the ARM ® 64-bit Architecture (AArch64)
+         switch(encoding){
+            case 0:  return Dyninst::archPTX::x0;
+            case 1:  return Dyninst::archPTX::x1;
+            case 2:  return Dyninst::archPTX::x2;
+            case 3:  return Dyninst::archPTX::x3;
+            case 4:  return Dyninst::archPTX::x4;
+            case 5:  return Dyninst::archPTX::x5;
+            case 6:  return Dyninst::archPTX::x6;
+            case 7:  return Dyninst::archPTX::x7;
+            case 8:  return Dyninst::archPTX::x8;
+            case 9:  return Dyninst::archPTX::x9;
+            case 10: return Dyninst::archPTX::x10;
+            case 11: return Dyninst::archPTX::x11;
+            case 12: return Dyninst::archPTX::x12;
+            case 13: return Dyninst::archPTX::x13;
+            case 14: return Dyninst::archPTX::x14;
+            case 15: return Dyninst::archPTX::x15;
+            case 16: return Dyninst::archPTX::x16;
+            case 17: return Dyninst::archPTX::x17;
+            case 18: return Dyninst::archPTX::x18;
+            case 19: return Dyninst::archPTX::x19;
+            case 20: return Dyninst::archPTX::x20;
+            case 21: return Dyninst::archPTX::x21;
+            case 22: return Dyninst::archPTX::x22;
+            case 23: return Dyninst::archPTX::x23;
+            case 24: return Dyninst::archPTX::x24;
+            case 25: return Dyninst::archPTX::x25;
+            case 26: return Dyninst::archPTX::x26;
+            case 27: return Dyninst::archPTX::x27;
+            case 28: return Dyninst::archPTX::x28;
+            case 29: return Dyninst::archPTX::x29;
+            case 30: return Dyninst::archPTX::x30;
+            case 31: return Dyninst::archPTX::sp;
+            case 32: return Dyninst::InvalidReg;
+         }
+         switch(encoding){
+            case 64: return Dyninst::archPTX::q0;
+            case 65: return Dyninst::archPTX::q1;
+            case 66: return Dyninst::archPTX::q2;
+            case 67: return Dyninst::archPTX::q3;
+            case 68: return Dyninst::archPTX::q4;
+            case 69: return Dyninst::archPTX::q5;
+            case 70: return Dyninst::archPTX::q6;
+            case 71: return Dyninst::archPTX::q7;
+            case 72: return Dyninst::archPTX::q8;
+            case 73: return Dyninst::archPTX::q9;
+            case 74: return Dyninst::archPTX::q10;
+            case 75: return Dyninst::archPTX::q11;
+            case 76: return Dyninst::archPTX::q12;
+            case 77: return Dyninst::archPTX::q13;
+            case 78: return Dyninst::archPTX::q14;
+            case 79: return Dyninst::archPTX::q15;
+            case 80: return Dyninst::archPTX::q16;
+            case 81: return Dyninst::archPTX::q17;
+            case 82: return Dyninst::archPTX::q18;
+            case 83: return Dyninst::archPTX::q19;
+            case 84: return Dyninst::archPTX::q20;
+            case 85: return Dyninst::archPTX::q21;
+            case 86: return Dyninst::archPTX::q22;
+            case 87: return Dyninst::archPTX::q23;
+            case 88: return Dyninst::archPTX::q24;
+            case 89: return Dyninst::archPTX::q25;
+            case 90: return Dyninst::archPTX::q26;
+            case 91: return Dyninst::archPTX::q27;
+            case 92: return Dyninst::archPTX::q28;
+            case 93: return Dyninst::archPTX::q29;
+            case 94: return Dyninst::archPTX::q30;
+            case 95: return Dyninst::archPTX::q31;
+
+            default: return Dyninst::InvalidReg;
+            break;
+         }
+         return Dyninst::InvalidReg;
+         }
+ 
+
+
       case Arch_none:
          return Dyninst::InvalidReg;
          break;
@@ -1723,7 +1883,80 @@ int MachRegister::getDwarfEnc() const
             default: return -1;
          }
          break;
-      case Arch_aarch64:
+  case Arch_archPTX:
+         switch (val()) {
+            case Dyninst::aarch64::ix0: 	    return 0;
+            case Dyninst::aarch64::ix1: 	    return 1;
+            case Dyninst::aarch64::ix2: 	    return 2;
+            case Dyninst::aarch64::ix3: 	    return 3;
+            case Dyninst::aarch64::ix4: 	    return 4;
+            case Dyninst::aarch64::ix5: 	    return 5;
+            case Dyninst::aarch64::ix6: 	    return 6;
+            case Dyninst::aarch64::ix7: 	    return 7;
+            case Dyninst::archPTX::ix8: 	    return 8;
+            case Dyninst::archPTX::ix9: 	    return 9;
+            case Dyninst::archPTX::ix10: 	return 10;
+            case Dyninst::archPTX::ix11: 	return 11;
+            case Dyninst::archPTX::ix12: 	return 12;
+            case Dyninst::archPTX::ix13: 	return 13;
+            case Dyninst::archPTX::ix14: 	return 14;
+            case Dyninst::archPTX::ix15: 	return 15;
+            case Dyninst::archPTX::ix16: 	return 16;
+            case Dyninst::archPTX::ix17: 	return 17;
+            case Dyninst::archPTX::ix18: 	return 18;
+            case Dyninst::archPTX::ix19: 	return 19;
+            case Dyninst::archPTX::ix20: 	return 20;
+            case Dyninst::archPTX::ix21: 	return 21;
+            case Dyninst::archPTX::ix22: 	return 22;
+            case Dyninst::archPTX::ix23: 	return 23;
+            case Dyninst::archPTX::ix24: 	return 24;
+            case Dyninst::archPTX::ix25: 	return 25;
+            case Dyninst::archPTX::ix26: 	return 26;
+            case Dyninst::archPTX::ix27: 	return 27;
+            case Dyninst::archPTX::ix28: 	return 28;
+            case Dyninst::archPTX::ix29: 	return 29;
+            case Dyninst::archPTX::ix30: 	return 30;
+            case Dyninst::archPTX::isp:      return 31;
+
+            case Dyninst::archPTX::iq0:      return 64;
+            case Dyninst::archPTX::iq1:      return 65;
+            case Dyninst::archPTX::iq2:      return 66;
+            case Dyninst::archPTX::iq3:      return 67;
+            case Dyninst::archPTX::iq4:      return 68;
+            case Dyninst::archPTX::iq5:      return 69;
+            case Dyninst::archPTX::iq6:      return 70;
+            case Dyninst::archPTX::iq7:      return 71;
+            case Dyninst::archPTX::iq8:      return 72;
+            case Dyninst::archPTX::iq9:      return 73;
+            case Dyninst::archPTX::iq10:     return 74;
+            case Dyninst::archPTX::iq11:     return 75;
+            case Dyninst::archPTX::iq12:     return 76;
+            case Dyninst::archPTX::iq13:     return 77;
+            case Dyninst::archPTX::iq14:     return 78;
+            case Dyninst::archPTX::iq15:     return 79;
+            case Dyninst::archPTX::iq16:     return 80;
+            case Dyninst::archPTX::iq17:     return 81;
+            case Dyninst::archPTX::iq18:     return 82;
+            case Dyninst::archPTX::iq19:     return 83;
+            case Dyninst::archPTX::iq20:     return 84;
+            case Dyninst::archPTX::iq21:     return 85;
+            case Dyninst::archPTX::iq22:     return 86;
+            case Dyninst::archPTX::iq23:     return 87;
+            case Dyninst::archPTX::iq24:     return 88;
+            case Dyninst::archPTX::iq25:     return 89;
+            case Dyninst::archPTX::iq26:     return 90;
+            case Dyninst::archPTX::iq27:     return 91;
+            case Dyninst::archPTX::iq28:     return 92;
+            case Dyninst::archPTX::iq29:     return 93;
+            case Dyninst::archPTX::iq30:     return 94;
+            case Dyninst::archPTX::iq31:     return 95;
+
+            default: return -1;
+         }
+         break;    
+
+
+     case Arch_aarch64:
          switch (val()) {
             case Dyninst::aarch64::ix0: 	    return 0;
             case Dyninst::aarch64::ix1: 	    return 1;
@@ -1817,6 +2050,10 @@ unsigned Dyninst::getArchAddressWidth(Dyninst::Architecture arch)
       case Arch_ppc64:
       case Arch_aarch64:
          return 8;
+    case Arch_archPTX:
+         return 8;
+        
+
       default:
          assert(0);
          return InvalidReg;
@@ -1865,8 +2102,50 @@ MachRegister MachRegister::getArchReg(unsigned int regNum, Dyninst::Architecture
             case 102: return Dyninst::aarch64::pstate;
             case 103: return Dyninst::aarch64::zr;
          }
+      
+    case Arch_archPTX:
+         switch(regNum){
+            case 0:  return Dyninst::archPTX::x0;
+            case 1:  return Dyninst::archPTX::x1;
+            case 2:  return Dyninst::archPTX::x2;
+            case 3:  return Dyninst::archPTX::x3;
+            case 4:  return Dyninst::archPTX::x4;
+            case 5:  return Dyninst::archPTX::x5;
+            case 6:  return Dyninst::archPTX::x6;
+            case 7:  return Dyninst::archPTX::x7;
+            case 8:  return Dyninst::archPTX::x8;
+            case 9:  return Dyninst::archPTX::x9;
+            case 10: return Dyninst::archPTX::x10;
+            case 11: return Dyninst::archPTX::x11;
+            case 12: return Dyninst::archPTX::x12;
+            case 13: return Dyninst::archPTX::x13;
+            case 14: return Dyninst::archPTX::x14;
+            case 15: return Dyninst::archPTX::x15;
+            case 16: return Dyninst::archPTX::x16;
+            case 17: return Dyninst::archPTX::x17;
+            case 18: return Dyninst::archPTX::x18;
+            case 19: return Dyninst::archPTX::x19;
+            case 20: return Dyninst::archPTX::x20;
+            case 21: return Dyninst::archPTX::x21;
+            case 22: return Dyninst::archPTX::x22;
+            case 23: return Dyninst::archPTX::x23;
+            case 24: return Dyninst::archPTX::x24;
+            case 25: return Dyninst::archPTX::x25;
+            case 26: return Dyninst::archPTX::x26;
+            case 27: return Dyninst::archPTX::x27;
+            case 28: return Dyninst::archPTX::x28;
+            case 29: return Dyninst::archPTX::x29;
+            case 30: return Dyninst::archPTX::x30;
+
+            case 100: return Dyninst::archPTX::sp;
+            case 101: return Dyninst::archPTX::pc;
+            case 102: return Dyninst::archPTX::pstate;
+            case 103: return Dyninst::archPTX::zr;
+         }
+
       default:
          return InvalidReg;
     }
-    return InvalidReg;
+   
 }
+

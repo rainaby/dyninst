@@ -98,7 +98,9 @@ namespace Dyninst
       typedef boost::shared_ptr<Operation> Ptr;
       friend class InstructionDecoder_power; // for editing mnemonics after creation
       friend class InstructionDecoder_aarch64;
+      friend class InstructionDecoder_archPTX;
       
+
     public:
       INSTRUCTION_EXPORT Operation(NS_x86::ia32_entry* e, NS_x86::ia32_prefixes* p = NULL, ia32_locations* l = NULL,
                                   Architecture arch = Arch_none);

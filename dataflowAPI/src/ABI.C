@@ -508,3 +508,10 @@ void ABI::initialize64(){
 	assert(0);
 }
 #endif
+
+#if defined(arch_archPTX)
+void ABI::initializeptx(){
+	assert(0);
+
+}
+#endif

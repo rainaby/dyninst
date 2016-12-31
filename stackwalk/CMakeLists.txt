@@ -50,6 +50,13 @@ elseif (PLATFORM MATCHES linux OR PLATFORM MATCHES freebsd)
             src/aarch64-swk.C
             src/dbginfo-stepper.C 
         )
+  elseif (PLATFORM MATCHES archPTX)
+        set (SRC_LIST ${SRC_LIST}
+            src/linux-archPTX-swk.C 
+            src/archPTX-swk.C
+            src/dbginfo-stepper.C 
+        )
+
 
     elseif (PLATFORM MATCHES i386 OR PLATFORM MATCHES x86_64)
         set (SRC_LIST ${SRC_LIST}
@@ -63,7 +70,7 @@ elseif (PLATFORM MATCHES linux OR PLATFORM MATCHES freebsd)
 elseif (PLATFORM MATCHES bgq)
     set (SRC_LIST ${SRC_LIST}
         src/ppc-swk.C 
-        src/symtab-swk.C 
+        src/symtab-swk.C
         src/linuxbsd-swk.C
         src/bluegeneq-swk.C
     )

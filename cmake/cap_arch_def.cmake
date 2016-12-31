@@ -54,6 +54,12 @@ elseif (PLATFORM MATCHES ppc64)
               -Darch_ppc_little_endian
           )
    endif (SYSPLATFORM MATCHES ppc64le)
+
+elseif (PLATFORM MATCHES archPTX)
+  #set (ARCH_DEFINES -Daarch_32 -Darch_32bit)
+  set (ARCH_DEFINES -Darch_archPTX -Darch_ptx)
+  set (CAP_DEFINES ${CAP_DEFINES} -Dcap_32_-Dcap_ptx)
+  
 elseif (PLATFORM MATCHES aarch64)
   #set (ARCH_DEFINES -Daarch_64 -Darch_64bit)
   set (ARCH_DEFINES -Darch_aarch64 -Darch_64bit)
@@ -132,6 +138,9 @@ set (BUG_DEFINES ${BUG_DEFINES} -Dbug_registers_after_exit)
 
 elseif (PLATFORM STREQUAL ppc64_bgq_ion)
 set (OLD_DEFINES -Dppc64_bluegene -Dppc64_linux)
+
+elseif (PLATFORM STREQUAL archPTX-unknown-linux)
+  set (OLD_DEFINES -DarchPTX_unknown_linux)
 
 elseif (PLATFORM STREQUAL x86_64_cnl)
 set (OLD_DEFINES -Dx86_64_cnl -Dx86_64_unknown_linux2_4)

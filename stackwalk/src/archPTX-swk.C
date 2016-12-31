@@ -39,7 +39,7 @@
 
 #include "get_trap_instruction.h"
 
-#include "stackwalk/src/aarch64-swk.h"
+#include "stackwalk/src/archPTX-swk.h"
 
 using namespace Dyninst;
 using namespace Dyninst::Stackwalker;
@@ -97,7 +97,7 @@ bool ProcSelf::getRegValue(Dyninst::MachRegister reg, THR_ID, Dyninst::MachRegis
 
 Dyninst::Architecture ProcSelf::getArchitecture()
 {
-   return Arch_aarch64;
+   return Arch_archPTX;
 }
 
 bool Walker::checkValidFrame(const Frame & /*in*/, const Frame & /*out*/)
@@ -111,7 +111,7 @@ FrameFuncStepperImpl::FrameFuncStepperImpl(Walker *w, FrameStepper *parent_,
    parent(parent_),
    helper(helper_)
 {
-   helper = helper_ ? helper_ : aarch64_LookupFuncStart::getLookupFuncStart(getProcessState());
+   helper = helper_ ? helper_ : archPTX_LookupFuncStart::getLookupFuncStart(getProcessState());
 }
 
 gcframe_ret_t FrameFuncStepperImpl::getCallerFrame(const Frame &in, Frame &out)
@@ -200,13 +200,13 @@ gcframe_ret_t FrameFuncStepperImpl::getCallerFrame(const Frame &in, Frame &out)
   if (FrameFuncHelper::unset_frame == alloc_frame.second)
   {
     ra_loc.location = loc_register;
-    ra_loc.val.reg = aarch64::x30;
+    ra_loc.val.reg = archPTX::x30;
 
     // Leaf function - does not save return address
     // Get the RA from the PC register
     if (sizeof(uint64_t) == addrWidth)
     {
-      result = getProcessState()->getRegValue(aarch64::x30, in.getThread(), out_ra);
+      result = getProcessState()->getRegValue(archPTX::x30, in.getThread(), out_ra);
     }
     else
     {
@@ -281,7 +281,7 @@ unsigned FrameFuncStepperImpl::getPriority() const
 
 FrameFuncStepperImpl::~FrameFuncStepperImpl()
 {
-   aarch64_LookupFuncStart *lookup = dynamic_cast<aarch64_LookupFuncStart*>(helper);
+   archPTX_LookupFuncStart *lookup = dynamic_cast<archPTX_LookupFuncStart*>(helper);
    if (lookup)
       lookup->releaseMe();
    else if (helper)
@@ -382,7 +382,7 @@ gcframe_ret_t DyninstDynamicStepperImpl::getCallerFrameArch(const Frame &in, Fra
   return gcf_success;
 }
 
-std::map<Dyninst::PID, aarch64_LookupFuncStart*> aarch64_LookupFuncStart::all_func_starts;
+std::map<Dyninst::PID, archPTX_LookupFuncStart*> archPTX_LookupFuncStart::all_func_starts;
 
 static int hash_address(Address a)
 {
@@ -390,7 +390,7 @@ static int hash_address(Address a)
 }
 
 // to handle leaf functions
-aarch64_LookupFuncStart::aarch64_LookupFuncStart(ProcessState *proc_) :
+archPTX_LookupFuncStart::archPTX_LookupFuncStart(ProcessState *proc_) :
    FrameFuncHelper(proc_),
    cache(cache_size, hash_address)
 {
@@ -398,24 +398,24 @@ aarch64_LookupFuncStart::aarch64_LookupFuncStart(ProcessState *proc_) :
    ref_count = 1;
 }
 
-aarch64_LookupFuncStart::~aarch64_LookupFuncStart()
+archPTX_LookupFuncStart::~archPTX_LookupFuncStart()
 {
    Dyninst::PID pid = proc->getProcessId();
    all_func_starts.erase(pid);
 }
 
-aarch64_LookupFuncStart *aarch64_LookupFuncStart::getLookupFuncStart(ProcessState *p)
+archPTX_LookupFuncStart *archPTX_LookupFuncStart::getLookupFuncStart(ProcessState *p)
 {
    Dyninst::PID pid = p->getProcessId();
-   std::map<Dyninst::PID, aarch64_LookupFuncStart*>::iterator i = all_func_starts.find(pid);
+   std::map<Dyninst::PID, archPTX_LookupFuncStart*>::iterator i = all_func_starts.find(pid);
    if (i == all_func_starts.end()) {
-      return new aarch64_LookupFuncStart(p);
+      return new archPTX_LookupFuncStart(p);
    }
    (*i).second->ref_count++;
    return (*i).second;
 }
 
-void aarch64_LookupFuncStart::releaseMe()
+void archPTX_LookupFuncStart::releaseMe()
 {
    ref_count--;
    if (!ref_count)
@@ -428,7 +428,7 @@ static const unsigned int push_fp_ra      = 0xa9807bfd ; // stp x29, x30, [sp, #
 static const unsigned int mov_sp_fp       = 0x910003fd ; // mov x29(fp), sp
 static const unsigned int push_fp_ra_mask = 0xffc07fff ; // mask for push_fp_ra
 
-FrameFuncHelper::alloc_frame_t aarch64_LookupFuncStart::allocatesFrame(Address addr)
+FrameFuncHelper::alloc_frame_t archPTX_LookupFuncStart::allocatesFrame(Address addr)
 {
    LibAddrPair lib;
    unsigned int mem[FUNCTION_PROLOG_TOCHECK/4];
@@ -521,12 +521,12 @@ FrameFuncHelper::alloc_frame_t aarch64_LookupFuncStart::allocatesFrame(Address a
    return res;
 }
 
-void aarch64_LookupFuncStart::updateCache(Address addr, alloc_frame_t result)
+void archPTX_LookupFuncStart::updateCache(Address addr, alloc_frame_t result)
 {
    cache.insert(addr, result);
 }
 
-bool aarch64_LookupFuncStart::checkCache(Address addr, alloc_frame_t &result)
+bool archPTX_LookupFuncStart::checkCache(Address addr, alloc_frame_t &result)
 {
    return cache.lookup(addr, result);
 }

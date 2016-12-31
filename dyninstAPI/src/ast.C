@@ -66,12 +66,15 @@ extern int tramp_pre_frame_size_32;
 extern int tramp_pre_frame_size_64;
 #elif defined(arch_aarch64)
 #include "inst-aarch64.h"
+#elif defined(arch_archPTX)
+#include "inst-archPTX.h"
+
+
 #else
 #error "Unknown architecture in ast.h"
 #endif
 
 #include "emitter.h"
-
 #include "registerSpace.h"
 #include "mapped_module.h"
 
@@ -2097,6 +2100,13 @@ bool AstCallNode::initRegisters(codeGen &gen) {
 	//#warning "This function is not implemented yet!"
 	assert(false);
 #endif
+
+#if defined(arch_archPTX)
+	//#warning "This function is not implemented yet!"
+	assert(false);
+#endif
+ 
+
     return ret;
 
 }
@@ -2363,6 +2373,11 @@ bool AstDynamicTargetNode::generateCode_phase2(codeGen &gen,
 #elif defined (arch_aarch64)
 			//#warning "This function is not implemented yet!"
 			assert(0);
+#elif defined (arch_archPTX)
+			//#warning "This function is not implemented yet!"
+			assert(0);
+
+
 #else
         assert(0);
 #endif

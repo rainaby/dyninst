@@ -215,6 +215,35 @@ void DYNINSTinit()
 #else
 	assert(0);
 #endif
+
+#if !defined(arch_archPTX)
+   rtdebug_printf("%s[%d]:  DYNINSTinit:  welcome to DYNINSTinit()\n", __FILE__, __LINE__);
+   initFPU();
+   mark_heaps_exec();
+
+   tc_lock_init(&DYNINST_trace_lock);
+   DYNINSThasInitialized = 1;
+   rtdebug_printf("%s[%d]:  welcome to DYNINSTinit\n", __FILE__, __LINE__);
+
+   /* sanity check */
+   assert(sizeof(int64_t) == 8);
+   assert(sizeof(int32_t) == 4);
+
+   /* defensive stuff */
+   memset(DYNINST_target_cache,
+          0,
+          sizeof(void*) * TARGET_CACHE_WIDTH * TARGET_CACHE_WAYS);
+   memset(cacheLRUflags, 1, sizeof(char)*TARGET_CACHE_WIDTH);
+   // stOut = fopen("rtdump.txt","w");
+
+   rtdebug_printf("%s[%d]:  leaving DYNINSTinit\n", __FILE__, __LINE__);
+   fakeTickCount=0;
+   /* Memory emulation */
+#else
+	assert(0);
+#endif
+
+
 }
 
 /**
@@ -241,6 +270,20 @@ void DYNINST_snippetBreakpoint() {
    DYNINST_synch_event_id = DSE_undefined;
 
    tc_lock_unlock(&DYNINST_trace_lock);
+#elif !defined(arch_archPTX)
+   tc_lock_lock(&DYNINST_trace_lock);
+
+   /* Set the state so the mutator knows what's up */
+   DYNINST_synch_event_id = DSE_snippetBreakpoint;
+   DYNINST_synch_event_arg1 = NULL;
+   /* Stop ourselves */
+   DYNINSTbreakPoint();
+   /* Once the stop completes, clean up */
+   DYNINST_synch_event_id = DSE_undefined;
+
+   tc_lock_unlock(&DYNINST_trace_lock);
+
+
 #else
 	assert(0);
 #endif
@@ -262,6 +305,20 @@ DLLEXPORT void DYNINST_instForkEntry() {
    DYNINST_synch_event_arg1 = NULL;
 
    tc_lock_unlock(&DYNINST_trace_lock);
+#elif !defined(arch_aarch64)
+   tc_lock_lock(&DYNINST_trace_lock);
+
+   /* Set the state so the mutator knows what's up */
+   DYNINST_synch_event_id = DSE_forkEntry;
+   DYNINST_synch_event_arg1 = NULL;
+   /* Stop ourselves */
+   DYNINSTbreakPoint();
+   /* Once the stop completes, clean up */
+   DYNINST_synch_event_id = DSE_undefined;
+   DYNINST_synch_event_arg1 = NULL;
+
+   tc_lock_unlock(&DYNINST_trace_lock);
+
 #else
 	assert(0);
 #endif
@@ -293,6 +350,28 @@ DLLEXPORT void DYNINST_instForkExit(void *arg1) {
    DYNINST_synch_event_arg1 = NULL;
 
    tc_lock_unlock(&DYNINST_trace_lock);
+
+#elif !defined(arch_archPTX)
+   tc_lock_lock(&DYNINST_trace_lock);
+
+   /* Set the state so the mutator knows what's up */
+   DYNINST_synch_event_id = DSE_forkExit;
+   DYNINST_synch_event_arg1 = arg1;
+   /* Stop ourselves */
+   if ((long int)arg1 == 0) {
+       /* Child... */
+       DYNINSTsafeBreakPoint();
+   }
+   else {
+       DYNINSTbreakPoint();
+   }
+   /* Once the stop completes, clean up */
+   DYNINST_synch_event_id = DSE_undefined;
+   DYNINST_synch_event_arg1 = NULL;
+
+   tc_lock_unlock(&DYNINST_trace_lock);
+
+
 #else
 	assert(0);
 #endif
@@ -302,13 +381,15 @@ DLLEXPORT void DYNINST_instForkExit(void *arg1) {
 /* Used to instrument (and report) the entry of exec */
 DLLEXPORT void DYNINST_instExecEntry(void *arg1) {
 //#warning "This function is not implemented for AARCH64 yet!"
-#if !defined(arch_aarch64)
+#if !defined(arch_aarch64) && !defined(arch_archPTX)
    tc_lock_lock(&DYNINST_trace_lock);
 
    /* Set the state so the mutator knows what's up */
    DYNINST_synch_event_id = DSE_execEntry;
    DYNINST_synch_event_arg1 = arg1;
    /* Stop ourselves */
+
+
 #if defined(os_linux)
    DYNINSTlinuxBreakPoint();
 #else

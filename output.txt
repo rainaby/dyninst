@@ -1,0 +1,11 @@
+/home/rainaby/dyninst/proccontrol/src/process.C: In member function ‘int int_process::getAddressWidth()’:
+/home/rainaby/dyninst/proccontrol/src/process.C:1927:11: warning: enumeration value ‘Arch_archPTX’ not handled in switch [-Wswitch]
+    switch (getTargetArch()) {
+           ^
+lex.dynC.C: In function ‘int dynClex()’:
+lex.dynC.C:1224:25: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+lex.dynC.C: In function ‘int yy_get_next_buffer()’:
+lex.dynC.C:2052:18: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+lex.dynC.C:1060:20: note: in definition of macro ‘YY_INPUT’
+lex.dynC.C: In function ‘yy_buffer_state* dynC_scan_bytes(const char*, int)’:
+lex.dynC.C:2567:19: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]

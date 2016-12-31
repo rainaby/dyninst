@@ -64,6 +64,10 @@
 #elif defined (arch_aarch64)
 #include "dyninstAPI/src/inst-aarch64.h"
 #include "dyninstAPI/src/emit-aarch64.h"
+#elif defined (arch_archPTX)
+#include "dyninstAPI/src/inst-archPTX.h"
+#include "dyninstAPI/src/emit-archPTX.h"
+
 #endif
 
 registerSpace *registerSpace::globalRegSpace_ = NULL;
@@ -713,6 +717,12 @@ bool registerSpace::readProgramRegister(codeGen &gen,
 //#warning "This fucntion is not implemented yet!"
 		assert(0);
 		return false;
+
+#elif defined(arch_archPTX)
+//#warning "This fucntion is not implemented yet!"
+		assert(0);
+		return false;
+
 #else
     // Real version that uses stored information
 
@@ -764,6 +774,11 @@ bool registerSpace::writeProgramRegister(codeGen &gen,
 #if defined(arch_aarch64)
 		//not implemented yet
 		return false;
+#elif defined(arch_archPTX)
+		//not implemented yet
+		return false;
+
+
 #else
     registerSlot *src = registers_[source];
     assert(source);
@@ -1473,6 +1488,11 @@ bool registerSpace::checkLive(Register reg, const bitArray &liveRegs){
 #if defined(arch_aarch64)
 	assert(0);
 	//#error "aarch64 should not be 32bit long"
+#elif defined(arch_archPTX)
+	assert(0);
+	//#error "aarch64 should not be 32bit long"
+
+
 #else
 		range = regToMachReg32.equal_range(reg);
 		live = &live1;

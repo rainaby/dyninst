@@ -46,6 +46,12 @@ using namespace NS_x86;
 #elif defined(arch_aarch64)
 #include "codegen-aarch64.h"
 using namespace NS_aarch64;
+
+#elif defined(arch_archPTX)
+#include "codegen-archPTX.h"
+using namespace NS_archPTX;
+
+
 #else
 #error "unknown architecture"
 #endif

@@ -28,41 +28,30 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-// Architecture include. Use this one instead of arch-<platform>
 
-#if !defined(arch_h)
-#define arch_h
-
-#include <assert.h>
-#include <vector>
-
-#if defined(arch_power)
-#include "arch-power.h"
-using namespace NS_power;
-
-#elif defined(i386_unknown_nt4_0) \
-   || defined(arch_x86)           \
-   || defined(arch_x86_64)
-#include "arch-x86.h"
-using namespace NS_x86;
-
-#elif defined(arch_aarch64)
-#include "arch-aarch64.h"
-using namespace NS_aarch64;
-
-#elif defined(arch_archPTX)
-#include "arch-archPTX.h"
-using namespace NS_archPTX;
-#
-
-#else
-#error "unknown architecture"
-
+#if !defined(os_linux) || !defined(arch_archPTX)
+#error "invalid architecture-os inclusion"
 #endif
 
-// For platforms that require bit-twiddling. These should go away in the future.
-#define GET_PTR(insn, gen) codeBuf_t *insn = (codeBuf_t *)(gen).cur_ptr()
-#define SET_PTR(insn, gen) (gen).update(insn)
-#define REGET_PTR(insn, gen) insn = (codeBuf_t *)(gen).cur_ptr()
+#ifndef LINUX_AARCH64_HDR
+#define LINUX_AARCH64_HDR
+
+#include "common/src/Types.h"
+
+// floor of inferior malloc address range within a single branch of x
+// for 32-bit ELF PowerPC mutatees
+extern Address region_lo(const Address x);
+
+// floor of inferior malloc address range within a single branch of x
+// for 64-bit ELF PowerPC mutatees
+extern Address region_lo_64(const Address x);
+
+// ceiling of inferior malloc address range within a single branch of x
+// for 32-bit ELF PowerPC mutatees
+extern Address region_hi(const Address x);
+
+// ceiling of inferior malloc address range within a single branch of x
+// for 64-bit ELF PowerPC mutatees
+extern Address region_hi_64(const Address x);
 
 #endif
